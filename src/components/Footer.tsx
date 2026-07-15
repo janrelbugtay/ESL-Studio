@@ -8,11 +8,14 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="bg-brand-purple text-white p-2 rounded-xl">
-                <Bot size={24} />
-              </div>
+              <img 
+                src="https://drive.google.com/thumbnail?id=1IrQAzr2JXZjfhDxPhP-MZkFlbF8GfW9n&sz=w1000" 
+                alt="Hamster English Logo"
+                className="w-10 h-10 rounded-xl object-cover shadow-sm"
+                referrerPolicy="no-referrer"
+              />
               <span className="font-display font-bold text-xl tracking-tight text-slate-800">
-                ESL Game Studio <span className="text-brand-purple">AI</span>
+                Hamster English <span className="text-brand-purple">- ESL Studio</span>
               </span>
             </div>
             <p className="text-slate-500 max-w-sm mb-6">
@@ -51,7 +54,7 @@ export function Footer() {
         </div>
         
         <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400">
-          <p>© 2026 ESL Game Studio AI. All rights reserved.</p>
+          <p>© 2026 Hamster English - ESL Studio. All rights reserved.</p>
           <p className="flex items-center gap-1">
             Made with <Heart size={14} className="text-brand-orange" /> for Teachers
           </p>

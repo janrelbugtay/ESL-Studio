@@ -6,9 +6,13 @@ export type ViewState =
   | "admin-dashboard"
   | "user-dashboard"
   | "leaderboard"
-  | "shark-ladder"
   | "media-studio"
-  | "mystery-box";
+  | "mystery-box"
+  | "neon-chain"
+  | "bubble-pop"
+  | "flashcards-match"
+  | "yoga-quiz"
+  | "bubble-sentence-pro";
 
 export interface Game {
   id: string;

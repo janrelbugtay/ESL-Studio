@@ -67,7 +67,13 @@ function ImageGeneration() {
         body: JSON.stringify({ prompt, size })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate image");
+      if (!res.ok) {
+        let errStr = data.error || "Failed to generate image";
+        if (typeof errStr === 'string' && errStr.includes('exceeded your current quota')) {
+          errStr = "Image generation free tier quota exceeded. Please wait a minute and try again.";
+        }
+        throw new Error(errStr);
+      }
       setResultUrl(data.imageUrl);
     } catch (err: any) {
       setError(err.message);
@@ -266,7 +272,13 @@ function ImageAnalysis() {
         body: formData
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to analyze image");
+      if (!res.ok) {
+        let errStr = data.error || "Failed to analyze image";
+        if (typeof errStr === 'string' && errStr.includes('exceeded your current quota')) {
+          errStr = "Image analysis free tier quota exceeded. Please wait a minute and try again.";
+        }
+        throw new Error(errStr);
+      }
       setResultText(data.text);
     } catch (err: any) {
       setError(err.message);

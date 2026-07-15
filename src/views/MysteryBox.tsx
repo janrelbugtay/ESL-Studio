@@ -3,7 +3,7 @@ import { ArrowLeft, Save, X } from "lucide-react";
 import { ViewState } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../lib/firebase";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 
 export function MysteryBox({
   onViewChange,
@@ -17,9 +17,9 @@ export function MysteryBox({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pendingGameData, setPendingGameData] = useState<any>(null);
   const [saveForm, setSaveForm] = useState({
-    name: "",
-    className: "",
-    topic: "",
+    name: initialGame?.name || "",
+    className: initialGame?.className || "",
+    topic: initialGame?.topic || "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -54,10 +54,20 @@ export function MysteryBox({
         setupTeamCount: pendingGameData.setupTeamCount,
         customQuestions: pendingGameData.customQuestions,
         userId: user.uid,
-        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
-      await addDoc(collection(db, "sharkGames"), gameToSave); // We use sharkGames collection for now or create a new one. Let's stick to sharkGames to show in library, wait Library might break. Let's check Library.
-      alert("Game saved successfully!");
+
+      if (initialGame?.id) {
+        await updateDoc(doc(db, "mysteryBoxGames", initialGame.id), gameToSave);
+        alert("Game updated successfully!");
+      } else {
+        await addDoc(collection(db, "mysteryBoxGames"), {
+          ...gameToSave,
+          createdAt: new Date().toISOString(),
+        });
+        alert("Game saved successfully!");
+      }
+
       setShowSaveModal(false);
       onViewChange("games");
     } catch (error) {

@@ -34,6 +34,8 @@ export function AdminDashboard() {
   const [editName, setEditName] = useState("");
 
   useEffect(() => {
+    if (!user) return;
+    
     const q = query(collection(db, "users"), orderBy("lastLoginAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const usersData = snapshot.docs.map((doc) => ({
@@ -41,10 +43,12 @@ export function AdminDashboard() {
         ...doc.data(),
       }));
       setUsers(usersData);
+    }, (error) => {
+      console.error("Error fetching users:", error);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm("Are you sure you want to delete this user profile?")) {

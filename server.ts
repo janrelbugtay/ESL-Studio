@@ -21,6 +21,25 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Emoji Generation Endpoint (gemini-3.1-flash)
+  app.post("/api/generate-emoji", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.1-flash-lite',
+        contents: `You are an emoji generator. Reply with EXACTLY ONE emoji that best represents the following text, and nothing else. Text: "${prompt}"`,
+      });
+      
+      const emoji = response.text?.trim();
+      res.json({ emoji });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Image Generation Endpoint (gemini-3-pro-image-preview)
   app.post("/api/generate-image", async (req, res) => {
     try {
@@ -28,12 +47,11 @@ async function startServer() {
       if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-image-preview',
-        contents: prompt,
+        model: 'gemini-3.1-flash-lite-image',
+        contents: { parts: [{ text: prompt }] },
         config: {
           imageConfig: {
-            aspectRatio: "1:1",
-            imageSize: size || "1K"
+            aspectRatio: "1:1"
           }
         },
       });

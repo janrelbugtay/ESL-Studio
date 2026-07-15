@@ -11,11 +11,15 @@ import { Home } from "./views/Home";
 import { AIGenerator } from "./views/AIGenerator";
 import { AdminDashboard } from "./views/AdminDashboard";
 import { UserDashboard } from "./views/UserDashboard";
-import { SharkLadder } from "./views/SharkLadder";
 import { GamesLibrary } from "./views/GamesLibrary";
 import { MysteryBox } from "./views/MysteryBox";
 
 import { MediaStudio } from "./views/MediaStudio";
+import { NeonChain } from "./views/NeonChain";
+import { BubblePop } from "./views/BubblePop";
+import { FlashcardsMatch } from "./views/FlashcardsMatch";
+import { YogaQuiz } from "./views/YogaQuiz";
+import { BubbleSentencePro } from "./views/BubbleSentencePro";
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>("home");
@@ -23,10 +27,9 @@ export default function App() {
 
   const handleViewChange = (view: ViewState, data?: any) => {
     setCurrentView(view);
-    if ((view === "shark-ladder" || view === "mystery-box") && data) {
+    if (data) {
       setSelectedGame(data);
-    }
-    if (view !== "shark-ladder" && view !== "mystery-box") {
+    } else {
       setSelectedGame(null);
     }
   };
@@ -43,15 +46,18 @@ export default function App() {
         return <UserDashboard />;
       case "media-studio":
         return <MediaStudio />;
-      case "shark-ladder":
-        return (
-          <SharkLadder
-            onViewChange={handleViewChange}
-            initialGame={selectedGame}
-          />
-        );
       case "mystery-box":
         return <MysteryBox onViewChange={handleViewChange} initialGame={selectedGame} />;
+      case "neon-chain":
+        return <NeonChain onViewChange={handleViewChange} />;
+      case "bubble-pop":
+        return <BubblePop onViewChange={handleViewChange} initialGame={selectedGame} />;
+      case "flashcards-match":
+        return <FlashcardsMatch onViewChange={handleViewChange} />;
+      case "yoga-quiz":
+        return <YogaQuiz onViewChange={handleViewChange} />;
+      case "bubble-sentence-pro":
+        return <BubbleSentencePro onViewChange={handleViewChange} />;
       case "dashboard":
         return <UserDashboard />;
       case "games":

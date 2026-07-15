@@ -4,9 +4,6 @@ import { ViewState } from "../types";
 import {
   Gamepad2,
   Home,
-  Bot,
-  LayoutDashboard,
-  Trophy,
   Bell,
   Search,
   Moon,
@@ -26,30 +23,6 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
   const navItems = [
     { id: "home", label: "Home", icon: Home, view: "home" as ViewState },
     { id: "games", label: "Games", icon: Gamepad2, view: "games" as ViewState },
-    {
-      id: "generator",
-      label: "AI Tools",
-      icon: Bot,
-      view: "generator" as ViewState,
-    },
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      view: (isAdmin ? "admin-dashboard" : "dashboard") as ViewState,
-    },
-    {
-      id: "leaderboard",
-      label: "Leaderboards",
-      icon: Trophy,
-      view: "leaderboard" as ViewState,
-    },
-    {
-      id: "media-studio",
-      label: "Media Studio",
-      icon: Bot,
-      view: "media-studio" as ViewState,
-    },
   ];
 
   return (
@@ -58,13 +31,16 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
         className="flex items-center gap-2 mb-8 cursor-pointer"
         onClick={() => onViewChange("home")}
       >
-        <div className="w-10 h-10 bg-gradient-to-br from-brand-purple to-brand-blue rounded-xl flex items-center justify-center shadow-lg shadow-purple-200/50 shrink-0">
-          <Bot size={24} className="text-white" />
-        </div>
+        <img 
+          src="https://drive.google.com/thumbnail?id=1IrQAzr2JXZjfhDxPhP-MZkFlbF8GfW9n&sz=w1000" 
+          alt="Hamster English Logo"
+          className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-purple-200/50 shrink-0"
+          referrerPolicy="no-referrer"
+        />
         <span className="font-bold text-lg leading-tight tracking-tight">
-          Teacher Jan
+          Hamster English
           <br />
-          <span className="text-brand-purple">ESL Studio</span>
+          <span className="text-brand-purple">- ESL Studio</span>
         </span>
       </div>
 
@@ -74,8 +50,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
             currentView === item.view ||
             (item.id === "dashboard" &&
               (currentView === "admin-dashboard" ||
-                currentView === "user-dashboard")) ||
-            (item.id === "games" && currentView === "shark-ladder");
+                currentView === "user-dashboard"));
           return (
             <button
               key={item.id}
@@ -186,24 +161,6 @@ export function Header({
                     <p className="text-xs text-slate-500 truncate">
                       {user.email}
                     </p>
-                  </div>
-                  <div className="py-2">
-                    <button
-                      onClick={() => handleDropdownItemClick("user-dashboard")}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-purple transition-colors"
-                    >
-                      User Dashboard
-                    </button>
-                    {isAdmin && (
-                      <button
-                        onClick={() =>
-                          handleDropdownItemClick("admin-dashboard")
-                        }
-                        className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-purple transition-colors"
-                      >
-                        Admin Dashboard
-                      </button>
-                    )}
                   </div>
                   <div className="py-2 border-t border-slate-50">
                     <button
