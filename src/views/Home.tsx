@@ -32,7 +32,7 @@ function FeaturedGamesSection({
       time: "15m",
       subject: "Trivia",
       grade: "A2-B1",
-      imageUrl: "/images/mystery-box.png",
+      imageUrl: "/images/mystery-box.png?v=2",
       isAI: false,
       color: "from-orange-400 to-yellow-500",
       icon: "🎁",
@@ -62,7 +62,7 @@ function FeaturedGamesSection({
       time: "5m",
       subject: "Grammar",
       grade: "A1-B1",
-      imageUrl: "/images/bubble-pop.png",
+      imageUrl: "/images/bubble-pop.png?v=2",
       isAI: false,
       color: "from-blue-400 to-cyan-400",
       icon: "🫧",
@@ -135,7 +135,7 @@ function FeaturedGamesSection({
       time: "10m",
       subject: "Grammar",
       grade: "All",
-      imageUrl: "/images/sumo.png",
+      imageUrl: "/images/sumo.png?v=2",
       isAI: false,
       color: "from-indigo-600 to-red-600",
       icon: "🤼",
@@ -175,7 +175,7 @@ function GameCard({
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
       onClick={() => onViewChange && onViewChange(game.id as ViewState)}
-      className="w-full relative aspect-[1000/791] bg-white border-[6px] border-white rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] group hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] ring-1 ring-slate-100 transition-all duration-300 cursor-pointer"
+      className="w-full relative aspect-[1000/791] bg-white border-[6px] border-white rounded-[40px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] group hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] ring-1 ring-slate-100 transition-all duration-300 cursor-pointer"
     >
       {game.imageUrl ? (
         <>
@@ -183,7 +183,7 @@ function GameCard({
             src={game.imageUrl}
             alt={game.title}
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover scale-[1.04] group-hover:scale-110 transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-brand-purple/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand-purple shadow-lg transform scale-50 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 delay-75">
@@ -199,7 +199,7 @@ function GameCard({
           )}
         >
           {game.icon?.startsWith("http") ? (
-             <img src={game.icon} referrerPolicy="no-referrer" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+             <img src={game.icon} referrerPolicy="no-referrer" alt="" className="w-full h-full object-cover group-hover:scale-[1.03] group-hover:scale-110 transition-transform duration-500" />
           ) : (
             <span className="text-7xl drop-shadow-md group-hover:scale-110 transition-transform duration-500">
               {game.icon}

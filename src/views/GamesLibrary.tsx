@@ -31,14 +31,14 @@ export function GamesLibrary({
   const [gameToMove, setGameToMove] = useState<string | null>(null);
 
   const gameTemplates = [
-    { id: "mystery-box", title: "Mystery Box", icon: "/images/mystery-box.png", color: "bg-orange-100 text-orange-600" },
+    { id: "mystery-box", title: "Mystery Box", icon: "/images/mystery-box.png?v=2", color: "bg-orange-100 text-orange-600" },
     { id: "neon-chain", title: "Neon Chain", icon: "https://drive.google.com/thumbnail?id=1kovfYZSlp6X8HTqQ9OF_gSpf3wgJgNYG&sz=w1000", color: "bg-cyan-100 text-cyan-600" },
-    { id: "bubble-pop", title: "Bubble Pop", icon: "/images/bubble-pop.png", color: "bg-blue-100 text-blue-600" },
+    { id: "bubble-pop", title: "Bubble Pop", icon: "/images/bubble-pop.png?v=2", color: "bg-blue-100 text-blue-600" },
     { id: "flashcards-match", title: "Flashcards Match", icon: "https://drive.google.com/thumbnail?id=1UtaZtVX0onrqj3VorxedOxy1iVXdFAHk&sz=w1000", color: "bg-indigo-100 text-indigo-600" },
     { id: "bubble-sentence-pro", title: "Bubble Island", icon: "https://drive.google.com/thumbnail?id=136UAXGhVDr4ZhJd3bRABHDKp40RJIQSJ&sz=w1000", color: "bg-sky-100 text-sky-600" },
     { id: "yoga-quiz", title: "Yoga Quiz", icon: "https://drive.google.com/thumbnail?id=16viKskpD4hXygTg-0UaGSjfrWibNoqeQ&sz=w1000", color: "bg-emerald-100 text-emerald-600" },
     { id: "family-feud", title: "Family Feud", icon: "https://drive.google.com/thumbnail?id=1DDWdERo9zS6SEbpXA7J8FSh__1CNqxZN&sz=w1000", color: "bg-yellow-100 text-yellow-600" },
-    { id: "sumo", title: "Sumo Tags", icon: "/images/sumo.png", color: "bg-red-100 text-red-600" },
+    { id: "sumo", title: "Sumo Tags", icon: "/images/sumo.png?v=2", color: "bg-red-100 text-red-600" },
   ];
 
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
@@ -426,11 +426,11 @@ export function GamesLibrary({
                     setShowNewGameModal(false);
                     onViewChange(template.id as ViewState);
                   }}
-                  className="flex flex-col items-center p-0 rounded-[32px] border-[6px] border-white bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] hover:-translate-y-2 ring-1 ring-slate-100 transition-all duration-300 text-center group overflow-hidden aspect-[1000/791] relative cursor-pointer"
+                  className="flex flex-col items-center p-0 rounded-[40px] border-[6px] border-white bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] hover:-translate-y-2 ring-1 ring-slate-100 transition-all duration-300 text-center group overflow-hidden aspect-[1000/791] relative cursor-pointer"
                 >
                   {template.icon.startsWith("http") || template.icon.startsWith("/") ? (
                     <>
-                      <img src={template.icon} referrerPolicy="no-referrer" alt={template.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <img src={template.icon} referrerPolicy="no-referrer" alt={template.title} className="w-full h-full object-cover scale-[1.04] group-hover:scale-110 transition-transform duration-700" />
                       <div className="absolute inset-0 bg-brand-purple/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand-purple shadow-lg transform scale-50 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 delay-75">
                           <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
