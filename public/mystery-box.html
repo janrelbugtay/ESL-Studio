@@ -447,6 +447,15 @@
       let isMuted = false;
 
       let setupTeamCount = 2;
+      let gameTopic = "";
+      let gameClass = "";
+      let gameFolder = "";
+      let availableFolders = [];
+      let gameTheme = "royal"; // royal, space, jungle, ocean
+      let genLevel = "A1";
+      let genType = "mixed";
+      let isGenerating = false;
+
       let customQuestions = Array.from({ length: 26 }, (_, i) => ({
         letter: String.fromCharCode(65 + i),
         type: "mcq",
@@ -461,6 +470,7 @@
       let openedBoxes = [];
 
       let activeBox = null;
+      let isSettingsOpen = false;
       let isAnswerRevealed = false;
       let selectedOptionIndex = null;
       let currentOutcome = null;
@@ -470,7 +480,46 @@
 
       // --- ACTIONS ---
 
+      
+      const generateQuestions = async () => {
+        if (!gameTopic) {
+          alert("Please enter a Topic in Game Details first.");
+          return;
+        }
+        isGenerating = true;
+        renderApp();
+        
+        try {
+          const res = await fetch("/api/generate-mystery-box-questions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic: gameTopic,
+              level: genLevel,
+              type: genType
+            })
+          });
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+          
+          if (data.questions && data.questions.length === 26) {
+            customQuestions = data.questions.map((q, i) => ({
+              ...q,
+              letter: String.fromCharCode(65 + i)
+            }));
+          } else {
+            alert("Failed to generate exactly 26 questions.");
+          }
+        } catch (e) {
+          alert("Error generating questions: " + e.message);
+        } finally {
+          isGenerating = false;
+          renderApp();
+        }
+      };
+
       const updateQuestionType = (idx, type) => {
+
         customQuestions[idx].type = type;
         renderApp();
       };
@@ -480,12 +529,27 @@
         // No re-render needed, native HTML radio handles it visually
       };
 
+      const toggleSettings = () => {
+        isSettingsOpen = !isSettingsOpen;
+        renderApp();
+      };
+      
+      const changeTheme = (newTheme) => {
+        gameTheme = newTheme;
+        renderApp();
+      };
+      
       const startGame = () => {
         playSound("click", isMuted);
+        
         const gameData = {
           setupTeamCount,
           customQuestions,
+          topic: gameTopic,
+          className: gameClass,
+          folder: gameFolder
         };
+
         window.parent.postMessage(
           { type: "SAVE_MYSTERY_BOX", data: gameData },
           "*",
@@ -725,13 +789,70 @@
               <p class="text-slate-500 font-bold mt-2">Configure teams and questions</p>
             </div>
 
+            
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h2 class="text-2xl font-bold mb-6 text-slate-700">1. Number of Teams</h2>
-              <div class="flex gap-4">${teamButtons}</div>
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">1. Game Details</h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-2">Topic</label>
+                  <input type="text" oninput="gameTopic = this.value" value="${gameTopic}" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 outline-none font-medium text-slate-700" placeholder="e.g. Present Simple" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-2">Class</label>
+                  <input type="text" oninput="gameClass = this.value" value="${gameClass}" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 outline-none font-medium text-slate-700" placeholder="e.g. Grade 3" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-2">Folder</label>
+                  <div class="relative">
+                    <select onchange="gameFolder = this.value" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 outline-none font-medium text-slate-700 appearance-none cursor-pointer">
+                      <option value="" ${gameFolder === "" ? "selected" : ""}>No Folder (Root)</option>
+                      ${availableFolders.map(f => `<option value="${f.name}" ${gameFolder === f.name ? "selected" : ""}>${f.name}</option>`).join("")}
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                      <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">2. Auto-Generate Questions</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-2">Cambridge Level</label>
+                  <div class="relative">
+                    <select onchange="genLevel = this.value" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 outline-none font-medium text-slate-700 appearance-none cursor-pointer">
+                      ${["A1", "A2", "B1", "B2", "C1", "C2"].map(l => `<option value="${l}" ${genLevel === l ? "selected" : ""}>${l}</option>`).join("")}
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                      <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-2">Question Type</label>
+                  <div class="relative">
+                    <select onchange="genType = this.value" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-400 outline-none font-medium text-slate-700 appearance-none cursor-pointer">
+                      <option value="mixed" ${genType === "mixed" ? "selected" : ""}>Mixed (MCQ & Fill in Blanks)</option>
+                      <option value="mcq" ${genType === "mcq" ? "selected" : ""}>Multiple Choice Only</option>
+                      <option value="fib" ${genType === "fib" ? "selected" : ""}>Fill in Blanks Only</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                      <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button onclick="generateQuestions()" ${isGenerating ? "disabled" : ""} class="w-full py-4 bg-purple-600 text-white rounded-xl font-bold text-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                ${isGenerating ? '<div class="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div> Generating...' : '<i data-lucide="sparkles" class="w-5 h-5"></i> Auto-Generate with AI'}
+              </button>
             </div>
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h2 class="text-2xl font-bold mb-6 text-slate-700">2. Questions List (A-Z)</h2>
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">3. Questions List (A-Z)</h2>
               <div class="space-y-6">${questionsHtml}</div>
             </div>
 
@@ -748,7 +869,59 @@
       `;
       };
 
+      const getThemeStyles = () => {
+        switch(gameTheme) {
+          case 'space':
+            return {
+              bg: 'bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black',
+              particles: 'bg-white/40',
+              box: 'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-300',
+              boxHover: 'hover:shadow-indigo-500/50',
+              modalBorder: 'border-indigo-400',
+              boxContent: `<div class="absolute inset-0 flex items-center justify-center text-7xl opacity-50 group-hover:scale-125 transition-transform duration-500 rotate-12 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">⭐</div>`,
+              letterStyle: 'absolute text-white left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]',
+              modalIcon: `<span class="text-4xl drop-shadow-sm">⭐</span>`
+            };
+          case 'jungle':
+            return {
+              bg: 'bg-gradient-to-br from-green-900 via-emerald-800 to-green-950',
+              particles: 'bg-green-300/40',
+              box: 'bg-gradient-to-br from-emerald-500 to-green-600 border-green-300',
+              boxHover: 'hover:shadow-green-500/50',
+              modalBorder: 'border-green-400',
+              boxContent: `<div class="absolute inset-0 flex items-center justify-center text-[7rem] opacity-60 group-hover:scale-125 transition-transform duration-500 -rotate-12">🌿</div>`,
+              letterStyle: 'absolute text-white left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]',
+              modalIcon: `<span class="text-4xl drop-shadow-sm">🌿</span>`
+            };
+          case 'ocean':
+            return {
+              bg: 'bg-gradient-to-b from-cyan-900 via-blue-900 to-blue-950',
+              particles: 'bg-cyan-200/40 rounded-full',
+              box: 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-200',
+              boxHover: 'hover:shadow-cyan-400/50',
+              modalBorder: 'border-cyan-300',
+              boxContent: `<div class="absolute inset-0 flex items-center justify-center text-[6rem] opacity-60 group-hover:scale-125 transition-transform duration-500 -rotate-45 ml-2 mt-4">🏄‍♂️</div>`,
+              letterStyle: 'absolute text-white left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]',
+              modalIcon: `<span class="text-4xl drop-shadow-sm">🏄‍♂️</span>`
+            };
+          case 'royal':
+          default:
+            return {
+              bg: 'bg-[conic-gradient(at_bottom_center,_var(--tw-gradient-stops))] from-indigo-900 via-purple-700 to-indigo-900',
+              particles: 'bg-yellow-200/40 rounded-full',
+              box: 'bg-gradient-to-br from-yellow-300 to-orange-500 border-white',
+              boxHover: 'hover:shadow-orange-400/50',
+              modalBorder: 'border-yellow-300',
+              boxContent: `<img src="https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w2048" alt="box" referrerpolicy="no-referrer" class="absolute inset-0 w-full h-full object-cover scale-[1.65] origin-[50%_15%] group-hover:scale-[1.75] transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-80 group-hover:opacity-40 transition-opacity duration-500"></div>`,
+              letterStyle: 'absolute text-yellow-400 left-[28%] top-[50%] -translate-x-1/2 -translate-y-1/2 rotate-[-8deg] group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]',
+              modalIcon: `<img src="https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w1000" alt="box" referrerpolicy="no-referrer" class="w-14 h-14 object-contain drop-shadow-lg" />`
+            };
+        }
+      };
+
       const renderGameScreen = () => {
+        const theme = getThemeStyles();
         const isGameOver =
           openedBoxes.length === customQuestions.length && activeBox === null;
         let shakeClass = celebration === "lose" ? "animate-shake" : "";
@@ -761,14 +934,14 @@
           <div class="px-4 md:px-8 py-3 md:py-4 rounded-xl border-4 transition-all duration-300 min-w-[120px] md:min-w-[180px] text-center ${
             isCurrent
               ? `${style.border} ${style.bg} scale-110 ${style.shadow} z-10`
-              : "border-transparent bg-white/60"
+              : "border-transparent bg-white/10"
           }">
-            <p class="text-sm md:text-xl font-black uppercase tracking-wider mb-1 ${isCurrent ? style.text : "text-slate-400"}">${team.name}</p>
-            <p class="text-4xl md:text-6xl font-black drop-shadow-sm transition-all ${isCurrent ? style.text : "text-slate-600"}">
+            <p class="text-sm md:text-xl font-black uppercase tracking-wider mb-1 ${isCurrent ? style.text : "text-white/60"}">${team.name}</p>
+            <p class="text-4xl md:text-6xl font-black drop-shadow-sm transition-all ${isCurrent ? style.text : "text-white/80"}">
               ${team.score > 0 ? "+" : ""}${team.score}
             </p>
           </div>
-          ${idx < teams.length - 1 ? `<div class="text-sky-300 font-black text-xl md:text-3xl opacity-50">VS</div>` : ""}
+          ${idx < teams.length - 1 ? `<div class="text-white/30 font-black text-xl md:text-3xl">VS</div>` : ""}
         `;
           })
           .join("");
@@ -781,17 +954,16 @@
             onclick="handleBoxClick('${box.letter}')"
             onmouseenter="playSound('hover', isMuted)"
             ${isOpened ? "disabled" : ""}
-            class="relative group aspect-square rounded-[2rem] flex flex-col items-center justify-center text-2xl sm:text-3xl md:text-4xl font-black shadow-xl transition-all duration-300
+            class="relative overflow-hidden group aspect-square rounded-[2rem] flex flex-col items-center justify-center text-2xl sm:text-3xl md:text-4xl font-black shadow-xl transition-all duration-300
               ${
                 isOpened
                   ? "bg-white/40 text-slate-400/50 cursor-not-allowed border-2 border-white/50 shadow-inner scale-95"
-                  : "bg-gradient-to-br from-yellow-300 to-orange-500 animate-box-glow text-white hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-400/50 border-4 border-white active:scale-95"
+                  : "${theme.box} animate-box-glow text-white hover:-translate-y-2 hover:shadow-2xl ${theme.boxHover} border-4 active:scale-95"
               }
             "
           >
-            ${!isOpened ? `<div class="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors rounded-[2rem]"></div>` : ""}
-            ${box.letter}
-            ${!isOpened ? `<img src="https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w1000" alt="box" referrerpolicy="no-referrer" class="w-16 h-16 sm:w-20 sm:h-20 mt-1 sm:mt-2 drop-shadow-lg object-contain group-hover:scale-110 transition-transform" />` : ""}
+            ${!isOpened ? theme.boxContent : ""}
+            <span class="z-10 font-black text-5xl md:text-6xl ${!isOpened ? theme.letterStyle : 'relative text-slate-500/50 drop-shadow-none'}">${box.letter}</span>
           </button>
         `;
           })
@@ -922,7 +1094,7 @@
               <div class="flex flex-col md:flex-row justify-center gap-6">
                 <button onclick="handleDecision(${currentTeamIdx})" class="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-8 bg-[#fff8f1] hover:bg-[#ffedd5] text-[#f97316] border-[3px] border-[#fb923c] rounded-[1.5rem] transition-all hover:-translate-y-1 shadow-sm">
                   <div class="flex items-center gap-3 font-black text-3xl">
-                    <img src="https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w1000" alt="box" referrerpolicy="no-referrer" class="w-14 h-14 object-contain drop-shadow-lg" /> KEEP IT
+                    ${theme.modalIcon} KEEP IT
                   </div>
                   <span class="text-sm font-bold opacity-80">(Applies to ${teams[currentTeamIdx].name})</span>
                 </button>
@@ -966,7 +1138,7 @@
               <p class="text-2xl font-bold text-slate-600 mb-8">
                 Applied to: <span class="px-4 py-1 rounded-xl text-white ${getTeamStyle(targetTeamIdx).badge}">${teams[targetTeamIdx].name}</span>
               </p>
-              <button onclick="closeReveal()" class="w-full sm:w-auto px-16 py-5 bg-slate-800 text-white hover:bg-slate-700 rounded-2xl font-black text-2xl shadow-xl transition-all hover:-translate-y-1">
+              <button onclick="closeReveal()" class="w-full sm:w-auto px-16 py-5 bg-white text-slate-900 hover:bg-slate-200 rounded-2xl font-black text-2xl shadow-xl transition-all hover:-translate-y-1">
                 Continue
               </button>
             </div>
@@ -975,7 +1147,7 @@
 
           modalHtml = `
           <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
-            <div class="bg-white border-[6px] border-yellow-300 rounded-[3rem] p-8 md:p-12 max-w-[90vw] xl:max-w-7xl w-full shadow-2xl relative animate-in zoom-in-95 duration-300 my-auto">
+            <div class="bg-white border-[6px] ${theme.modalBorder} rounded-[3rem] p-8 md:p-12 max-w-[90vw] xl:max-w-7xl w-full shadow-2xl relative animate-in zoom-in-95 duration-300 my-auto">
               <div class="absolute -top-12 left-1/2 -translate-x-1/2">
                 <div class="bg-gradient-to-br from-yellow-400 to-orange-500 text-white w-24 h-24 rounded-full flex items-center justify-center text-5xl font-black shadow-lg border-[6px] border-white">
                   ${activeBox.letter}
@@ -1017,6 +1189,52 @@
         }
 
         // Game Over Html
+
+        let settingsModalHtml = "";
+        if (isSettingsOpen) {
+          settingsModalHtml = `
+          <div class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+            <div class="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-200 border-[6px] border-indigo-100">
+              <h2 class="text-3xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                <i data-lucide="settings" class="w-8 h-8 text-indigo-500"></i> Settings
+              </h2>
+              
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-3">Theme</label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <button onclick="changeTheme('royal')" class="p-3 text-left rounded-xl border-[3px] transition-all font-bold ${gameTheme === 'royal' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-indigo-300'}">👑 Royal Treasury</button>
+                    <button onclick="changeTheme('space')" class="p-3 text-left rounded-xl border-[3px] transition-all font-bold ${gameTheme === 'space' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-indigo-300'}">🚀 Cosmic</button>
+                    <button onclick="changeTheme('jungle')" class="p-3 text-left rounded-xl border-[3px] transition-all font-bold ${gameTheme === 'jungle' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-indigo-300'}">🌴 Jungle</button>
+                    <button onclick="changeTheme('ocean')" class="p-3 text-left rounded-xl border-[3px] transition-all font-bold ${gameTheme === 'ocean' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-indigo-300'}">🌊 Ocean</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-3">Audio</label>
+                  <button onclick="toggleMute()" class="w-full p-4 text-left rounded-xl border-[3px] transition-all font-bold flex items-center justify-between ${!isMuted ? 'border-green-500 bg-green-50 text-green-700 shadow-sm' : 'border-slate-200 text-slate-500'}">
+                    <span class="flex items-center gap-2">
+                      ${!isMuted ? '<i data-lucide="volume-2" class="w-6 h-6"></i> Sound Enabled' : '<i data-lucide="volume-x" class="w-6 h-6"></i> Sound Muted'}
+                    </span>
+                    <div class="w-14 h-8 rounded-full transition-colors relative ${!isMuted ? 'bg-green-500' : 'bg-slate-300'}">
+                      <div class="absolute top-1 bottom-1 w-6 bg-white rounded-full transition-all ${!isMuted ? 'left-7' : 'left-1'}"></div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <button onclick="toggleSettings()" class="mt-8 w-full py-4 bg-slate-800 text-white rounded-xl font-black text-xl hover:bg-slate-700 transition-colors shadow-lg active:scale-95">
+                Done
+              </button>
+              
+              <button onclick="toggleSettings()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+            </div>
+          </div>
+          `;
+        }
+
         let gameOverHtml = "";
         if (isGameOver) {
           let confettis = Array.from({ length: 80 })
@@ -1053,8 +1271,7 @@
               <h2 class="text-4xl font-black text-slate-400 uppercase tracking-widest mb-6">Game Over</h2>
               <div class="mb-10 w-full">${winnerInner}</div>
               <div class="flex gap-4 w-full">
-                <button onclick="returnToSetup()" class="flex-1 px-8 py-5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl font-black text-xl transition-all">Setup Options</button>
-                <button onclick="resetGame()" class="flex-[2] px-12 py-5 bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600 text-white rounded-2xl font-black text-2xl shadow-xl transition-all hover:scale-105">Play Again</button>
+                <button onclick="resetGame()" class="flex-1 px-12 py-5 bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600 text-white rounded-2xl font-black text-2xl shadow-xl transition-all hover:scale-105">Play Again</button>
               </div>
             </div>
           </div>
@@ -1062,48 +1279,45 @@
         }
 
         return `
-        <div class="min-h-screen bg-gradient-to-br from-cyan-200 via-sky-100 to-yellow-100 pb-10 ${shakeClass}">
+        <div class="min-h-screen ${theme.bg} pb-10 ${shakeClass}">
 
           <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
             ${Array.from({ length: 20 }).map(() => `
-              <div class="absolute w-2 h-2 bg-yellow-200/40 rounded-full animate-float-up" 
+              <div class="absolute w-2 h-2 ${theme.particles} animate-float-up" 
                    style="left: ${Math.random() * 100}%; top: ${Math.random() * 100}%; animation-duration: ${3 + Math.random() * 4}s; animation-delay: ${Math.random() * 5}s; animation-iteration-count: infinite;">
               </div>
             `).join('')}
           </div>
 
           
-          <header class="p-4 md:p-6 bg-white/80 backdrop-blur-md shadow-lg shadow-sky-200/50 mb-8 border-b border-white flex flex-col xl:flex-row justify-between items-center gap-6 z-10 relative">
+          <header class="p-4 md:p-6 bg-white/10 backdrop-blur-md shadow-lg shadow-black/20 mb-8 border-b border-white/10 flex flex-col xl:flex-row justify-between items-center gap-6 z-10 relative">
             <div class="flex items-center gap-3">
               <div class="bg-yellow-400 p-2 rounded-full shadow-lg shadow-yellow-400/40">
                 <i data-lucide="sun" class="w-8 h-8 text-white"></i>
               </div>
-              <h1 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm hidden md:block">
+              <h1 class="text-3xl md:text-4xl font-black text-white drop-shadow-sm hidden md:block">
                 Mystery Box
               </h1>
             </div>
 
-            <div class="flex items-center justify-center gap-2 md:gap-4 bg-white/60 p-2 md:p-3 rounded-2xl shadow-inner border border-white flex-wrap">
+            <div class="flex items-center justify-center gap-2 md:gap-4 bg-white/5 p-2 md:p-3 rounded-2xl shadow-inner border border-white/10 flex-wrap">
               ${teamsHeaderHtml}
             </div>
 
             <div class="flex items-center gap-3">
-              <button onclick="toggleMute()" class="p-3 bg-white text-slate-500 hover:text-sky-500 rounded-xl shadow-md transition-colors" title="${isMuted ? "Unmute sounds" : "Mute sounds"}">
-                ${isMuted ? `<i data-lucide="volume-x" class="w-6 h-6"></i>` : `<i data-lucide="volume-2" class="w-6 h-6"></i>`}
-              </button>
-              <button onclick="resetGame()" class="p-3 bg-white text-slate-500 hover:text-red-500 rounded-xl shadow-md transition-colors" title="Reset Scores">
+              <button onclick="resetGame()" class="p-3 bg-white/10 text-white hover:bg-red-500 hover:text-white rounded-xl shadow-md transition-colors" title="Reset Scores">
                 <i data-lucide="refresh-cw" class="w-6 h-6"></i>
               </button>
-              <button onclick="returnToSetup()" class="flex items-center gap-2 px-5 py-3 bg-slate-800 text-white hover:bg-slate-700 rounded-xl shadow-md transition-colors font-bold">
-                <i data-lucide="settings" class="w-5 h-5"></i> Setup
+              <button onclick="toggleSettings()" class="flex items-center gap-2 px-5 py-3 bg-white text-slate-900 hover:bg-slate-200 rounded-xl shadow-md transition-colors font-bold">
+                <i data-lucide="settings" class="w-5 h-5"></i> Settings
               </button>
             </div>
           </header>
 
           <main class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-10">
-              <div class="inline-block bg-white border-2 border-white rounded-full p-2 pr-6 shadow-xl shadow-sky-200/50 transform transition-all hover:scale-105">
-                <h2 class="text-xl md:text-2xl font-bold text-slate-600 flex items-center gap-4">
+              <div class="inline-block bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-2 pr-6 shadow-xl shadow-black/20 transform transition-all hover:scale-105">
+                <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-4">
                   <span class="px-6 py-2 rounded-full text-white font-black shadow-md ${getTeamStyle(currentTeamIdx).badge}">
                     ${teams[currentTeamIdx]?.name.toUpperCase()} TURN
                   </span>
@@ -1120,8 +1334,9 @@
           ${modalHtml}
           ${visualEffectsHtml}
           ${gameOverHtml}
+            ${settingsModalHtml}
 
-          <div class="fixed bottom-4 right-6 text-slate-500/80 font-black text-sm pointer-events-none z-50 select-none drop-shadow-sm uppercase tracking-wider">
+          <div class="fixed bottom-4 right-6 text-white/60 font-black text-sm pointer-events-none z-50 select-none drop-shadow-sm uppercase tracking-wider">
             Created by: Teacher Jan
           </div>
         </div>
@@ -1141,10 +1356,20 @@
       // Initialize App
       renderApp();
 
-      window.addEventListener("message", (event) => {
+            window.addEventListener("message", (event) => {
+        if (event.data?.type === "SET_FOLDERS") {
+          availableFolders = event.data.data;
+          if (gameState === "setup") renderApp();
+        }
         if (event.data?.type === "LOAD_MYSTERY_BOX") {
           const gameData = event.data.data;
+          
           setupTeamCount = gameData.setupTeamCount || 2;
+          gameTopic = gameData.topic || "";
+          gameClass = gameData.className || "";
+          gameFolder = gameData.folder || "";
+          gameTheme = gameData.theme || "royal";
+
           customQuestions = gameData.customQuestions || customQuestions;
           teams = Array.from({ length: setupTeamCount }, (_, i) => ({
             id: i,
