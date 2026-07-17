@@ -147,7 +147,7 @@ export function MysteryBox({
   }, [initialGame]);
 
   return (
-    <div className="w-full h-full flex flex-col -mx-4 md:-mx-8 -my-4 md:-my-8 relative">
+    <div id="game-container" className="w-full h-full flex flex-col -mx-4 md:-mx-8 -my-4 md:-my-8 relative">
       <div className="p-4 bg-white border-b flex items-center shadow-sm z-10">
         <button
           onClick={() => onViewChange("home")}

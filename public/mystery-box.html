@@ -244,169 +244,123 @@
       };
 
       // --- GLOBAL DATA & CONSTANTS ---
-      const OUTCOMES = [
-        {
-          id: "add500",
-          text: "+500 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-green-600 shadow-green-600/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 500;
-            return teams;
-          },
-        },
-        {
-          id: "add300",
-          text: "+300 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-emerald-500 shadow-emerald-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 300;
-            return teams;
-          },
-        },
-        {
-          id: "add200_1",
-          text: "+200 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-green-500 shadow-green-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 200;
-            return teams;
-          },
-        },
-        {
-          id: "add200_2",
-          text: "+200 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-green-500 shadow-green-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 200;
-            return teams;
-          },
-        },
-        {
-          id: "add100_1",
-          text: "+100 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-teal-500 shadow-teal-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 100;
-            return teams;
-          },
-        },
-        {
-          id: "add100_2",
-          text: "+100 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-teal-500 shadow-teal-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 100;
-            return teams;
-          },
-        },
-        {
-          id: "add50_1",
-          text: "+50 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-cyan-500 shadow-cyan-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 50;
-            return teams;
-          },
-        },
-        {
-          id: "add50_2",
-          text: "+50 points",
-          icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`,
-          color: "bg-cyan-500 shadow-cyan-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score += 50;
-            return teams;
-          },
-        },
+      
+      const OUTCOMES_NORMAL = [
+        { id: "add100", text: "+100 points", icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`, color: "bg-teal-500 shadow-teal-500/40", action: (teams, tIdx) => { teams[tIdx].score += 100; return teams; } },
+        { id: "add200", text: "+200 points", icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`, color: "bg-green-500 shadow-green-500/40", action: (teams, tIdx) => { teams[tIdx].score += 200; return teams; } },
+        { id: "add300", text: "+300 points", icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`, color: "bg-emerald-500 shadow-emerald-500/40", action: (teams, tIdx) => { teams[tIdx].score += 300; return teams; } },
+        { id: "sub50", text: "-50 points", icon: `<i data-lucide="cloud-rain" class="w-10 h-10 text-white"></i>`, color: "bg-red-400 shadow-red-400/40", action: (teams, tIdx) => { teams[tIdx].score -= 50; return teams; } },
+        { id: "sub100", text: "-100 points", icon: `<i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>`, color: "bg-red-500 shadow-red-500/40", action: (teams, tIdx) => { teams[tIdx].score -= 100; return teams; } },
+        { id: "add50", text: "+50 points", icon: `<i data-lucide="star" class="w-10 h-10 text-yellow-100"></i>`, color: "bg-cyan-500 shadow-cyan-500/40", action: (teams, tIdx) => { teams[tIdx].score += 50; return teams; } },
+      ];
 
-        {
-          id: "sub50_1",
-          text: "-50 points",
-          icon: `<i data-lucide="cloud-rain" class="w-10 h-10 text-white"></i>`,
-          color: "bg-red-400 shadow-red-400/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 50;
-            return teams;
-          },
+      const OUTCOMES_MEDIUM = [
+        ...OUTCOMES_NORMAL,
+        { id: "add500", text: "+500 points", icon: `<i data-lucide="award" class="w-10 h-10 text-yellow-100"></i>`, color: "bg-green-600 shadow-green-600/40", action: (teams, tIdx) => { teams[tIdx].score += 500; return teams; } },
+        { id: "sub200", text: "-200 points", icon: `<i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>`, color: "bg-rose-600 shadow-rose-600/40", action: (teams, tIdx) => { teams[tIdx].score -= 200; return teams; } },
+        { 
+          id: "swap_lowest", 
+          text: "Swap with Lowest", 
+          icon: `<i data-lucide="arrow-right-left" class="w-10 h-10 text-white"></i>`, 
+          color: "bg-purple-500 shadow-purple-500/40", 
+          action: (teams, tIdx) => { 
+            let lowestIdx = 0;
+            for (let i = 1; i < teams.length; i++) {
+              if (teams[i].score < teams[lowestIdx].score) lowestIdx = i;
+            }
+            if (lowestIdx !== tIdx) {
+              let temp = teams[tIdx].score;
+              teams[tIdx].score = teams[lowestIdx].score;
+              teams[lowestIdx].score = temp;
+            }
+            return teams; 
+          } 
         },
-        {
-          id: "sub50_2",
-          text: "-50 points",
-          icon: `<i data-lucide="cloud-rain" class="w-10 h-10 text-white"></i>`,
-          color: "bg-red-400 shadow-red-400/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 50;
-            return teams;
-          },
-        },
-        {
-          id: "sub100_1",
-          text: "-100 points",
-          icon: `<i data-lucide="cloud-rain" class="w-10 h-10 text-white"></i>`,
-          color: "bg-red-500 shadow-red-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 100;
-            return teams;
-          },
-        },
-        {
-          id: "sub100_2",
-          text: "-100 points",
-          icon: `<i data-lucide="cloud-rain" class="w-10 h-10 text-white"></i>`,
-          color: "bg-red-500 shadow-red-500/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 100;
-            return teams;
-          },
-        },
-        {
-          id: "sub200_1",
-          text: "-200 points",
-          icon: `<i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>`,
-          color: "bg-rose-600 shadow-rose-600/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 200;
-            return teams;
-          },
-        },
-        {
-          id: "sub200_2",
-          text: "-200 points",
-          icon: `<i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>`,
-          color: "bg-rose-600 shadow-rose-600/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 200;
-            return teams;
-          },
-        },
-        {
-          id: "sub300",
-          text: "-300 points",
-          icon: `<i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>`,
-          color: "bg-red-600 shadow-red-600/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 300;
-            return teams;
-          },
-        },
-        {
-          id: "sub500",
-          text: "-500 points",
-          icon: `<i data-lucide="alert-triangle" class="w-10 h-10 text-white"></i>`,
-          color: "bg-red-700 shadow-red-700/40",
-          action: (teams, tIdx) => {
-            teams[tIdx].score -= 500;
-            return teams;
-          },
+        { 
+          id: "steal_100", 
+          text: "Steal 100", 
+          icon: `<i data-lucide="grab" class="w-10 h-10 text-white"></i>`, 
+          color: "bg-indigo-500 shadow-indigo-500/40", 
+          action: (teams, tIdx) => { 
+            let highestIdx = 0;
+            for (let i = 1; i < teams.length; i++) {
+              if (teams[i].score > teams[highestIdx].score) highestIdx = i;
+            }
+            if (highestIdx !== tIdx && teams[highestIdx].score >= 100) {
+              teams[highestIdx].score -= 100;
+              teams[tIdx].score += 100;
+            }
+            return teams; 
+          } 
         },
       ];
+
+      const OUTCOMES_DIFFICULT = [
+        ...OUTCOMES_MEDIUM,
+        { id: "sub500", text: "-500 points", icon: `<i data-lucide="skull" class="w-10 h-10 text-white"></i>`, color: "bg-red-700 shadow-red-700/40", action: (teams, tIdx) => { teams[tIdx].score -= 500; return teams; } },
+        { 
+          id: "swap_highest", 
+          text: "Swap with Highest", 
+          icon: `<i data-lucide="arrow-right-left" class="w-10 h-10 text-white"></i>`, 
+          color: "bg-fuchsia-600 shadow-fuchsia-600/40", 
+          action: (teams, tIdx) => { 
+            let highestIdx = 0;
+            for (let i = 1; i < teams.length; i++) {
+              if (teams[i].score > teams[highestIdx].score) highestIdx = i;
+            }
+            if (highestIdx !== tIdx) {
+              let temp = teams[tIdx].score;
+              teams[tIdx].score = teams[highestIdx].score;
+              teams[highestIdx].score = temp;
+            }
+            return teams; 
+          } 
+        },
+        { 
+          id: "minus_10_percent", 
+          text: "-10% Points", 
+          icon: `<i data-lucide="percent" class="w-10 h-10 text-white"></i>`, 
+          color: "bg-orange-500 shadow-orange-500/40", 
+          action: (teams, tIdx) => { 
+            teams[tIdx].score -= Math.floor(Math.max(0, teams[tIdx].score) * 0.10);
+            return teams; 
+          } 
+        },
+        { 
+          id: "minus_all_team", 
+          text: "Bomb All Teams -100", 
+          icon: `<i data-lucide="bomb" class="w-10 h-10 text-white"></i>`, 
+          color: "bg-slate-800 shadow-slate-800/40", 
+          action: (teams, tIdx) => { 
+            teams.forEach(t => t.score -= 100);
+            return teams; 
+          } 
+        },
+        { 
+          id: "give_10_percent", 
+          text: "Give 10% to others", 
+          icon: `<i data-lucide="gift" class="w-10 h-10 text-white"></i>`, 
+          color: "bg-pink-500 shadow-pink-500/40", 
+          action: (teams, tIdx) => { 
+            if (teams.length > 1 && teams[tIdx].score > 0) {
+              const amount = Math.floor(teams[tIdx].score * 0.10);
+              teams[tIdx].score -= amount;
+              const perTeam = Math.floor(amount / (teams.length - 1));
+              teams.forEach((t, i) => {
+                if (i !== tIdx) t.score += perTeam;
+              });
+            }
+            return teams; 
+          } 
+        },
+      ];
+      
+      const getOutcomes = () => {
+        if (gameDifficulty === "normal") return OUTCOMES_NORMAL;
+        if (gameDifficulty === "medium") return OUTCOMES_MEDIUM;
+        return OUTCOMES_DIFFICULT;
+      };
+
 
       const getTeamStyle = (index) => {
         const styles = [
@@ -446,12 +400,13 @@
       let gameState = "setup"; // 'setup' or 'playing'
       let isMuted = false;
 
-      let setupTeamCount = 2;
+      
       let gameTopic = "";
       let gameClass = "";
       let gameFolder = "";
       let availableFolders = [];
-      let gameTheme = "royal"; // royal, space, jungle, ocean
+      let gameTheme = "royal";
+      let gameDifficulty = "normal"; // royal, space, jungle, ocean
       let genLevel = "A1";
       let genType = "mixed";
       let isGenerating = false;
@@ -465,7 +420,10 @@
         answer: `Sample Answer ${String.fromCharCode(65 + i)}`,
       }));
 
-      let teams = [];
+      let teams = [
+        { id: 0, name: "Team 1", score: 0 },
+        { id: 1, name: "Team 2", score: 0 }
+      ];
       let currentTeamIdx = 0;
       let openedBoxes = [];
 
@@ -529,8 +487,29 @@
         // No re-render needed, native HTML radio handles it visually
       };
 
+      const addTeam = () => {
+        teams.push({ id: teams.length, name: `Team ${teams.length + 1}`, score: 0 });
+        renderApp();
+      };
+
+      const removeTeam = (index) => {
+        if (teams.length > 2) {
+          teams.splice(index, 1);
+          if (currentTeamIdx >= teams.length) {
+            currentTeamIdx = 0;
+          }
+          teams.forEach((t, i) => (t.id = i));
+          renderApp();
+        }
+      };
+
       const toggleSettings = () => {
         isSettingsOpen = !isSettingsOpen;
+        renderApp();
+      };
+      
+      const changeDifficulty = (newDiff) => {
+        gameDifficulty = newDiff;
         renderApp();
       };
       
@@ -543,11 +522,12 @@
         playSound("click", isMuted);
         
         const gameData = {
-          setupTeamCount,
+          teams,
           customQuestions,
           topic: gameTopic,
           className: gameClass,
-          folder: gameFolder
+          folder: gameFolder,
+          difficulty: gameDifficulty
         };
 
         window.parent.postMessage(
@@ -611,8 +591,8 @@
       const handleDecision = (choiceTargetIdx) => {
         targetTeamIdx = choiceTargetIdx;
 
-        const randomOutcome =
-          OUTCOMES[Math.floor(Math.random() * OUTCOMES.length)];
+        const outcomes = getOutcomes();
+        const randomOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
         currentOutcome = randomOutcome;
 
         const isPositive = !["sub", "lose"].some((prefix) =>
@@ -673,20 +653,21 @@
       // --- RENDER FUNCTIONS ---
 
       const renderSetupScreen = () => {
-        let teamButtons = [2, 3, 4]
+        let teamsHtml = teams
           .map(
-            (num) => `
-        <button 
-          onclick="playSound('click', isMuted); setupTeamCount = ${num}; renderApp();"
-          class="w-32 py-4 rounded-xl font-bold text-xl transition-all duration-300 ${
-            setupTeamCount === num
-              ? "bg-blue-500 text-white shadow-md border-2 border-blue-600"
-              : "bg-slate-100 text-slate-500 border-2 border-slate-200 hover:bg-slate-200"
-          }"
-        >
-          ${num} Teams
-        </button>
-      `,
+            (t, idx) => `
+          <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl focus-within:border-blue-400">
+            <div class="font-bold text-slate-400 w-6">${idx + 1}</div>
+            <input 
+              type="text" 
+              value="${t.name.replace(/"/g, "&quot;")}" 
+              oninput="teams[${idx}].name = this.value" 
+              class="flex-1 bg-transparent outline-none font-medium text-slate-700" 
+              placeholder="Team Name"
+            />
+            ${teams.length > 2 ? `<button onclick="removeTeam(${idx})" class="text-red-400 hover:text-red-600 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : ''}
+          </div>
+        `
           )
           .join("");
 
@@ -819,7 +800,19 @@
 
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h2 class="text-2xl font-bold mb-6 text-slate-700">2. Auto-Generate Questions</h2>
+              <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-700">2. Teams</h2>
+                <button onclick="addTeam()" class="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-bold text-sm transition-colors">
+                  <i data-lucide="plus" class="w-4 h-4"></i> Add Team
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${teamsHtml}
+              </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">3. Auto-Generate Questions</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label class="block text-sm font-bold text-slate-500 mb-2">Cambridge Level</label>
@@ -852,7 +845,7 @@
             </div>
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h2 class="text-2xl font-bold mb-6 text-slate-700">3. Questions List (A-Z)</h2>
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">4. Questions List (A-Z)</h2>
               <div class="space-y-6">${questionsHtml}</div>
             </div>
 
@@ -1104,7 +1097,7 @@
           `;
           } else if (modalStep === "reveal") {
             let revealConfetti = '';
-            if (currentOutcome.type === 'points') {
+            if (currentOutcome.id.startsWith('add')) {
               revealConfetti = `<div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                 ${Array.from({ length: 30 }).map(() => `
                   <div class="absolute text-4xl animate-float-up" style="left: ${Math.random() * 100}%; bottom: 0; animation-duration: ${1 + Math.random()}s; animation-delay: 0s;">
@@ -1112,7 +1105,7 @@
                   </div>
                 `).join('')}
               </div>`;
-            } else if (currentOutcome.type === 'lose') {
+            } else if (currentOutcome.id.startsWith('sub') || currentOutcome.id.startsWith('minus')) {
               revealConfetti = `<div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                 ${Array.from({ length: 20 }).map(() => `
                   <div class="absolute text-4xl animate-drop-down" style="left: ${Math.random() * 100}%; top: -10%; animation-duration: ${1 + Math.random()}s; animation-delay: 0s;">
@@ -1199,7 +1192,40 @@
                 <i data-lucide="settings" class="w-8 h-8 text-indigo-500"></i> Settings
               </h2>
               
-              <div class="space-y-6">
+              <div class="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                <div>
+                  <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-slate-500">Teams</label>
+                    <button onclick="addTeam()" class="text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded-md transition-colors flex items-center gap-1">
+                      <i data-lucide="plus" class="w-3 h-3"></i> Add
+                    </button>
+                  </div>
+                  <div class="space-y-2">
+                    ${teams.map((t, idx) => `
+                      <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 p-2 rounded-lg focus-within:border-blue-400">
+                        <div class="font-bold text-slate-400 w-4 text-sm">${idx + 1}</div>
+                        <input 
+                          type="text" 
+                          value="${t.name.replace(/"/g, "&quot;")}" 
+                          oninput="teams[${idx}].name = this.value" 
+                          class="flex-1 bg-transparent outline-none font-medium text-slate-700 text-sm" 
+                          placeholder="Team Name"
+                        />
+                        ${teams.length > 2 ? `<button onclick="removeTeam(${idx})" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-bold text-slate-500 mb-3">Difficulty</label>
+                  <div class="grid grid-cols-3 gap-2 mb-6">
+                    <button onclick="changeDifficulty('normal')" class="p-2 text-center rounded-xl border-[3px] transition-all font-bold text-sm ${gameDifficulty === 'normal' ? 'border-green-500 bg-green-50 text-green-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-green-300'}">Normal</button>
+                    <button onclick="changeDifficulty('medium')" class="p-2 text-center rounded-xl border-[3px] transition-all font-bold text-sm ${gameDifficulty === 'medium' ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-orange-300'}">Medium</button>
+                    <button onclick="changeDifficulty('difficult')" class="p-2 text-center rounded-xl border-[3px] transition-all font-bold text-sm ${gameDifficulty === 'difficult' ? 'border-red-500 bg-red-50 text-red-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-red-300'}">Difficult</button>
+                  </div>
+                </div>
+
                 <div>
                   <label class="block text-sm font-bold text-slate-500 mb-3">Theme</label>
                   <div class="grid grid-cols-2 gap-3">
@@ -1364,18 +1390,24 @@
         if (event.data?.type === "LOAD_MYSTERY_BOX") {
           const gameData = event.data.data;
           
-          setupTeamCount = gameData.setupTeamCount || 2;
           gameTopic = gameData.topic || "";
           gameClass = gameData.className || "";
           gameFolder = gameData.folder || "";
           gameTheme = gameData.theme || "royal";
+          gameDifficulty = gameData.difficulty || "normal";
 
           customQuestions = gameData.customQuestions || customQuestions;
-          teams = Array.from({ length: setupTeamCount }, (_, i) => ({
-            id: i,
-            name: `Team ${i + 1}`,
-            score: 0,
-          }));
+          
+          if (gameData.teams && gameData.teams.length > 0) {
+            teams = gameData.teams.map((t, idx) => ({ ...t, id: idx, score: 0 }));
+          } else {
+            const count = gameData.setupTeamCount || 2;
+            teams = Array.from({ length: count }, (_, i) => ({
+              id: i,
+              name: `Team ${i + 1}`,
+              score: 0,
+            }));
+          }
           currentTeamIdx = 0;
           openedBoxes = [];
           gameState = "playing";
