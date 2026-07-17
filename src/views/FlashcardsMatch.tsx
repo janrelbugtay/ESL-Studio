@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from "../types";
+import { FullscreenButton } from "../components/FullscreenButton";
 import {
   Plus, Search, Clock, Play, Grid, Edit3, Copy, Trash2, Share2, 
   ChevronLeft, ChevronRight, RotateCcw, Volume2, Star, Sparkles, 
@@ -131,7 +132,7 @@ export function FlashcardsMatch({ onViewChange }: { onViewChange: (view: ViewSta
   }
 
   return (
-    <div className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-slate-50 text-slate-900 flex flex-col font-sans overflow-hidden relative selection:bg-cyan-500/30 rounded-xl" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
+    <div id="game-container" className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-slate-50 text-slate-900 flex flex-col font-sans overflow-hidden relative selection:bg-cyan-500/30 rounded-xl" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
       <style>{customStyles}</style>
       
       {/* Top Toolbar Navigation */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ViewState } from "../types";
+import { FullscreenButton } from "../components/FullscreenButton";
 import { ArrowLeft, Edit3, Trash2, Heart, Plus, Sparkles, BookOpen, Search, Save, X, Play, Folder } from "lucide-react";
 import { collection, query, where, getDocs, deleteDoc, doc, addDoc, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -823,7 +824,7 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
   }, [screen]);
 
   return (
-    <div className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-[#0f172a] text-white flex flex-col font-['Fredoka',sans-serif] overflow-hidden relative selection:bg-cyan-500/30 rounded-xl" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }} ref={containerRef}>
+    <div id="game-container" className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-[#0f172a] text-white flex flex-col font-['Fredoka',sans-serif] overflow-hidden relative selection:bg-cyan-500/30 rounded-xl" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }} ref={containerRef}>
       
       {/* Back button overlay */}
       <button 
@@ -835,6 +836,7 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
       >
         <ArrowLeft size={24} />
       </button>
+        <FullscreenButton targetId="game-container" className="ml-2" />
 
       <style>{`
         .glass-panel {
@@ -1003,35 +1005,54 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
 
       {/* Screen: Results */}
       {screen === 'results' && (
-        <div className="absolute inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
-            <div className="glass-panel rounded-3xl p-10 max-w-2xl w-full text-center relative z-10 bg-slate-800/80 border-t-4 border-yellow-400 shadow-2xl">
-                <h2 className="text-3xl font-bold text-yellow-400 uppercase tracking-widest mb-2">{resultsTitle}</h2>
-                <div className="flex justify-center gap-2 text-6xl mb-8 animate-pop">
-                    <span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span>
+        <div className="absolute inset-0 z-50 bg-[#0f121b] flex flex-col items-center justify-center overflow-hidden font-sans">
+            <div className="rounded-3xl p-8 max-w-2xl w-full text-center relative z-10 bg-[#252836] shadow-2xl border border-slate-700/50">
+                <h2 className="text-3xl md:text-4xl font-black text-yellow-400 uppercase tracking-widest mb-6 drop-shadow-sm">{resultsTitle}</h2>
+                <div className="flex justify-center gap-3 mb-10">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <div key={star} className="relative">
+                            <svg 
+                                viewBox="0 0 24 24" 
+                                className={`w-12 h-12 md:w-16 md:h-16 transition-all duration-500 transform ${accuracy >= (star * 20 - 10) ? 'scale-100 opacity-100' : 'scale-75 opacity-30 grayscale'}`}
+                                style={{
+                                    filter: accuracy >= (star * 20 - 10) ? 'drop-shadow(0 8px 6px rgba(0,0,0,0.4))' : 'none',
+                                    animation: accuracy >= (star * 20 - 10) ? `popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${star * 0.1}s both` : 'none'
+                                }}
+                            >
+                                <path 
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" 
+                                    fill={accuracy >= (star * 20 - 10) ? "#facc15" : "#475569"} 
+                                    stroke={accuracy >= (star * 20 - 10) ? "#ca8a04" : "#334155"} 
+                                    strokeWidth="1.5"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </div>
+                    ))}
                 </div>
                 
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                    <div className="glass-panel p-4 rounded-xl bg-slate-900/50">
-                        <div className="text-slate-400 text-sm font-bold uppercase">Accuracy</div>
-                        <div className="text-4xl font-black text-green-400">{accuracy}%</div>
+                <div className="grid grid-cols-2 gap-4 md:gap-6 mb-10">
+                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                        <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">Accuracy</div>
+                        <div className="text-3xl md:text-5xl font-black text-emerald-400 drop-shadow-sm">{accuracy}%</div>
                     </div>
-                    <div className="glass-panel p-4 rounded-xl bg-slate-900/50">
-                        <div className="text-slate-400 text-sm font-bold uppercase">Score</div>
-                        <div className="text-4xl font-black text-blue-400">{numPlayers === 1 ? scores[0] : `P1:${scores[0]} P2:${scores[1]}`}</div>
+                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                        <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">Score</div>
+                        <div className="text-3xl md:text-5xl font-black text-sky-400 drop-shadow-sm">{numPlayers === 1 ? scores[0] : `P1:${scores[0]} P2:${scores[1]}`}</div>
                     </div>
-                    <div className="glass-panel p-4 rounded-xl bg-slate-900/50 border border-purple-500/30">
-                        <div className="text-slate-400 text-sm font-bold uppercase">XP Earned</div>
-                        <div className="text-3xl font-black text-purple-400">+{xpEarned}</div>
+                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                        <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">XP Earned</div>
+                        <div className="text-2xl md:text-4xl font-black text-fuchsia-400 drop-shadow-sm">+{xpEarned}</div>
                     </div>
-                    <div className="glass-panel p-4 rounded-xl bg-slate-900/50 border border-yellow-500/30">
-                        <div className="text-slate-400 text-sm font-bold uppercase">Coins Earned</div>
-                        <div className="text-3xl font-black text-yellow-400">+{coinsEarned}</div>
+                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                        <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">Coins Earned</div>
+                        <div className="text-2xl md:text-4xl font-black text-yellow-400 drop-shadow-sm">+{coinsEarned}</div>
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <button onClick={() => setScreen('setup')} className="px-8 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold text-xl transition-colors cursor-pointer text-white">Back to Setup</button>
-                    <button onClick={() => startGameMode(numPlayers)} className="btn-primary px-8 py-4 rounded-xl font-bold text-xl text-white cursor-pointer">Play Again</button>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onClick={() => setScreen('setup')} className="px-8 py-4 bg-[#393c4b] hover:bg-[#444857] rounded-xl font-black text-lg transition-colors cursor-pointer text-white shadow-lg">Back to Setup</button>
+                    <button onClick={() => startGameMode(numPlayers)} className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 rounded-xl font-black text-lg text-white cursor-pointer shadow-lg hover:shadow-indigo-500/25 transition-all">Play Again</button>
                 </div>
             </div>
         </div>

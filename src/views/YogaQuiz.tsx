@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState } from "../types";
+import { FullscreenButton } from "../components/FullscreenButton";
 import { ChevronLeft, Plus, Edit3, Trash2, Play, Search, Sparkles, Save, X, BookOpen, Clock, Heart, ArrowLeft, Download, Maximize, Minimize } from 'lucide-react';
 import Papa from 'papaparse';
 import Confetti from 'react-confetti';
@@ -107,7 +108,7 @@ export function YogaQuiz({ onViewChange }: { onViewChange: (view: ViewState) => 
   };
 
   return (
-    <div className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-[#ccfbf1] text-slate-900 flex flex-col font-sans overflow-hidden relative selection:bg-teal-500/30 rounded-xl" 
+    <div id="game-container" className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-[#ccfbf1] text-slate-900 flex flex-col font-sans overflow-hidden relative selection:bg-teal-500/30 rounded-xl" 
          style={{ margin: '-1rem', height: 'calc(100% + 2rem)', backgroundImage: 'radial-gradient(#99f6e4 2px, transparent 2px)', backgroundSize: '40px 40px' }}>
       
       <style>{`
@@ -147,6 +148,9 @@ export function YogaQuiz({ onViewChange }: { onViewChange: (view: ViewState) => 
           <span className="font-black text-xl tracking-tight text-teal-900 cursor-pointer hidden sm:block" onClick={() => navigateTo('lobby')}>
             YOGA STUDIO
           </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <FullscreenButton targetId="game-container" />
         </div>
 
         {currentView === 'lobby' && (

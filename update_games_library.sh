@@ -1,0 +1,3 @@
+sed -i 's/icon: "🎁"/icon: "https:\/\/drive.google.com\/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn\&sz=w1000"/' src/views/GamesLibrary.tsx
+sed -i 's/{gameTemplates.find(t => t.id === game.gameType)?.icon || .🎮.}/{(() => { const icon = gameTemplates.find(t => t.id === game.gameType)?.icon || .🎮.; return icon.startsWith("http") ? <img src={icon} alt="" className="w-8 h-8 object-contain" \/> : icon; })()}/' src/views/GamesLibrary.tsx
+sed -i 's/{template.icon}/{template.icon.startsWith("http") ? <img src={template.icon} alt="" className="w-10 h-10 object-contain" \/> : template.icon}/' src/views/GamesLibrary.tsx

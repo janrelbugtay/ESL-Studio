@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { ViewState } from "../types";
+import { FullscreenButton } from "../components/FullscreenButton";
 
 export function BubbleSentencePro({
   onViewChange,
@@ -22,6 +23,7 @@ export function BubbleSentencePro({
         <h1 className="ml-4 font-black text-xl text-slate-800">
           Bubble Sentence Formation Pro
         </h1>
+        <div className="ml-auto flex items-center"><FullscreenButton targetId="game-container" /></div>
       </div>
 
       <iframe

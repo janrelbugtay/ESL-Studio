@@ -1,414 +1,442 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Users,
-  Gamepad2,
-  TrendingUp,
-  Clock,
-  Award,
-  MoreVertical,
-  Plus,
-  Sparkles,
-  Trash2,
-  Edit2,
-  Save,
-  X,
-} from "lucide-react";
-import { cn } from "../lib/utils";
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  deleteDoc,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "../lib/firebase";
-import { useAuth } from "../contexts/AuthContext";
+  Users, Activity, Search, Bell, 
+  Menu, X, Settings, LogOut, Filter, Shield,
+  Gamepad2, Monitor, Smartphone, Tablet, Trash2
+} from 'lucide-react';
+import { collection, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { db } from '../lib/firebase';
 
-export function AdminDashboard() {
-  const { user } = useAuth();
-  const [users, setUsers] = useState<any[]>([]);
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+// --- UI COMPONENTS ---
+const Card = ({ children, className = '', title, action }: any) => (
+  <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden ${className}`}>
+    {(title || action) && (
+      <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center">
+        {title && <h3 className="font-semibold text-slate-800">{title}</h3>}
+        {action && <div>{action}</div>}
+      </div>
+    )}
+    <div className="p-6">{children}</div>
+  </div>
+);
 
-  useEffect(() => {
-    if (!user) return;
-    
-    const q = query(collection(db, "users"), orderBy("lastLoginAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setUsers(usersData);
-    }, (error) => {
-      console.error("Error fetching users:", error);
-    });
+const StatCard = ({ title, value, subtitle, trend, icon: Icon, colorClass, highlight, isLive }: any) => (
+  <Card className="hover:shadow-md transition-shadow relative overflow-hidden group">
+    <div className={`absolute top-0 right-0 w-32 h-32 transform translate-x-12 -translate-y-12 rounded-full opacity-10 transition-transform group-hover:scale-110 ${colorClass}`}></div>
+    <div className="flex justify-between items-start mb-4">
+      <div>
+        <p className="text-slate-500 text-sm font-medium mb-1 flex items-center gap-2">
+          {title}
+          {isLive && <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>}
+        </p>
+        <h2 className="text-3xl font-bold text-slate-800 flex items-baseline gap-2">
+          {value}
+          {highlight && <span className="text-sm font-medium text-slate-400">{highlight}</span>}
+        </h2>
+      </div>
+      <div className={`p-3 rounded-xl ${colorClass.replace('bg-', 'bg-opacity-10 text-')}`}>
+        <Icon size={24} className={colorClass.replace('bg-', 'text-')} />
+      </div>
+    </div>
+    {subtitle && (
+      <p className="text-sm text-slate-600 flex items-center gap-1">
+        {trend && (
+          <span className={`font-medium ${trend > 0 ? 'text-emerald-500' : 'text-red-500'} flex items-center`}>
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+        {subtitle}
+      </p>
+    )}
+  </Card>
+);
 
-    return () => unsubscribe();
-  }, [user]);
+const Avatar = ({ src, alt, size = 'md' }: any) => {
+  const sizes: any = { sm: 'w-8 h-8', md: 'w-10 h-10', lg: 'w-16 h-16', xl: 'w-24 h-24' };
+  return (
+    <img 
+      src={src} 
+      alt={alt} 
+      className={`${sizes[size]} rounded-full border-2 border-white shadow-sm object-cover bg-slate-100`}
+      onError={(e: any) => { e.target.src = 'https://ui-avatars.com/api/?name=' + alt; }}
+    />
+  );
+};
 
-  const handleDeleteUser = async (userId: string) => {
-    if (window.confirm("Are you sure you want to delete this user profile?")) {
+
+// --- VIEWS ---
+
+const DashboardOverview = ({ users }: any) => {
+  return (
+    <div className="space-y-6">
+      {/* Top Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <StatCard 
+          title="Total Users" value={users.length.toLocaleString()} 
+          subtitle="Registered accounts"
+          icon={Users} colorClass="bg-indigo-500" 
+        />
+        <StatCard 
+          title="Active System" value="Online" isLive={true}
+          subtitle="Platform status" 
+          icon={Activity} colorClass="bg-emerald-500" 
+        />
+      </div>
+
+      {/* Mini Live Users Table */}
+      <Card title="Recent Users" action={<button className="text-sm text-indigo-600 font-medium hover:underline">View All</button>}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-slate-500 bg-slate-50">
+              <tr>
+                <th className="py-3 px-4 rounded-tl-lg font-medium">User</th>
+                <th className="py-3 px-4 font-medium">Email</th>
+                <th className="py-3 px-4 rounded-tr-lg font-medium text-right">Last Login</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.slice(0, 10).map((user: any) => (
+                <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar src={user.photoURL} alt={user.displayName || user.email} size="sm" />
+                      <div>
+                        <p className="font-medium text-slate-800">{user.displayName || 'Unknown'}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-slate-600">
+                     {user.email}
+                  </td>
+                  <td className="py-3 px-4 text-right text-slate-500">
+                    {user.lastLoginAt ? new Date(user.lastLoginAt.toMillis()).toLocaleString() : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="py-4 text-center text-slate-500">
+                    No users found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+const UsersManagement = ({ users }: any) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const handleDeleteUser = async (uid: string, email: string) => {
+    if (window.confirm(`Are you sure you want to delete user ${email}?`)) {
       try {
-        await deleteDoc(doc(db, "users", userId));
+        await deleteDoc(doc(db, 'users', uid));
+        alert('User deleted successfully.');
       } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error('Error deleting user:', error);
+        alert('Failed to delete user.');
       }
     }
   };
 
-  const handleEditUser = (userId: string, currentName: string) => {
-    setEditingUserId(userId);
-    setEditName(currentName || "");
-  };
+  const filteredUsers = useMemo(() => {
+    return users.filter((u: any) => 
+      (u.displayName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
 
-  const handleSaveEdit = async (userId: string) => {
-    try {
-      await updateDoc(doc(db, "users", userId), {
-        displayName: editName,
+  return (
+    <Card title="User Management" className="h-[calc(100vh-140px)] flex flex-col">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search by name or email..." 
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button className="px-4 py-2 flex items-center gap-2 text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
+            <Filter size={16} /> Filters
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-auto flex-1 custom-scrollbar">
+        <table className="w-full text-left text-sm">
+          <thead className="text-slate-500 bg-slate-50 sticky top-0 z-10 shadow-sm">
+            <tr>
+              <th className="py-4 px-4 font-medium rounded-tl-lg">User</th>
+              <th className="py-4 px-4 font-medium">Email</th>
+              <th className="py-4 px-4 font-medium text-right">Last Login</th>
+              <th className="py-4 px-4 font-medium text-right rounded-tr-lg">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.map((user: any) => (
+              <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar src={user.photoURL} alt={user.displayName || user.email} />
+                    <div>
+                      <p className="font-semibold text-slate-800">{user.displayName || 'Unknown'}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-slate-600">
+                  {user.email}
+                </td>
+                <td className="py-3 px-4 text-right text-slate-500">
+                  {user.lastLoginAt ? new Date(user.lastLoginAt.toMillis()).toLocaleString() : 'N/A'}
+                </td>
+                <td className="py-3 px-4 text-right">
+                  <button 
+                    onClick={() => handleDeleteUser(user.uid, user.email)}
+                    className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    title="Delete User"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {filteredUsers.length === 0 && (
+              <tr>
+                <td colSpan={4} className="py-4 text-center text-slate-500">
+                  No users found matching "{searchTerm}".
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+};
+
+
+// --- MAIN APP COMPONENT ---
+export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => void }) {
+  const [currentRoute, setCurrentRoute] = useState('dashboard');
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+  // Fetch real users from Firestore
+  useEffect(() => {
+    const q = query(collection(db, 'users'), orderBy('lastLoginAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const usersData: any[] = [];
+      snapshot.forEach((doc) => {
+        usersData.push(doc.data());
       });
-      setEditingUserId(null);
+      setUsers(usersData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching users: ", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch maintenance mode
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'general'), (doc) => {
+      if (doc.exists()) {
+        setMaintenanceMode(doc.data().maintenanceMode === true);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const toggleMaintenanceMode = async () => {
+    try {
+      await setDoc(doc(db, 'settings', 'general'), { maintenanceMode: !maintenanceMode }, { merge: true });
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error('Error toggling maintenance mode', error);
+      alert('Failed to update maintenance mode.');
     }
   };
 
+  // Navigation config
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Activity },
+    { id: 'users', label: 'User Management', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  const handleNavClick = (id: string) => {
+    setCurrentRoute(id);
+    if (window.innerWidth < 1024) setSidebarOpen(false);
+  };
+
   return (
-    <div className="min-h-screen py-10 max-w-7xl mx-auto px-6">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-display font-bold text-slate-900">
-            Welcome back, {user?.displayName?.split(" ")[0] || "Admin"}! 👋
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Here's what's happening in your application today.
-          </p>
-        </div>
-        <button className="px-6 py-2.5 bg-brand-purple text-white rounded-xl font-medium text-sm hover:bg-brand-purple/90 transition-all shadow-sm flex items-center gap-2">
-          <Plus size={18} /> New Class
-        </button>
-      </div>
+    <div className="flex h-[calc(100vh-4rem)] bg-slate-50 font-sans overflow-hidden text-slate-800 -mx-4 -my-4 md:-mx-8 md:-my-8" style={{ margin: '-2rem' }}>
+      
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-20 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Users"
-          value={users.length.toString()}
-          change="+2 this week"
-          icon={Users}
-          color="brand-blue"
-        />
-        <StatCard
-          title="Games Played"
-          value="84"
-          change="+24 this week"
-          icon={Gamepad2}
-          color="brand-purple"
-        />
-        <StatCard
-          title="Avg. Score"
-          value="86%"
-          change="+2.5% this week"
-          icon={TrendingUp}
-          color="brand-green"
-        />
-        <StatCard
-          title="Learning Hours"
-          value="34.5"
-          change="+5.2h this week"
-          icon={Clock}
-          color="brand-orange"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Registered Users */}
-          <div className="bg-white rounded-[24px] p-6 premium-shadow border border-slate-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display font-bold text-xl text-slate-900">
-                Registered Users
-              </h2>
-              <button className="text-brand-purple text-sm font-medium hover:underline">
-                View all
-              </button>
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-30 w-72 bg-indigo-900 text-indigo-50 
+        transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl lg:shadow-none
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="p-6 flex items-center justify-between border-b border-indigo-800/50">
+          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onViewChange('home')}>
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Gamepad2 size={24} className="text-white" />
             </div>
-
-            <div className="space-y-4">
-              {users.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group"
-                >
-                  <div className="flex items-center gap-4">
-                    {u.photoURL ? (
-                      <img
-                        src={u.photoURL}
-                        alt={u.displayName || "User"}
-                        className="w-10 h-10 rounded-full border border-slate-200"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-white font-bold">
-                        {u.displayName?.charAt(0) || u.email?.charAt(0) || "U"}
-                      </div>
-                    )}
-                    <div>
-                      {editingUserId === u.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            className="border border-slate-300 rounded px-2 py-1 text-sm outline-none focus:border-brand-purple"
-                          />
-                        </div>
-                      ) : (
-                        <h4 className="font-bold text-slate-900">
-                          {u.displayName || "No Name"}
-                        </h4>
-                      )}
-                      <p className="text-sm text-slate-500">{u.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="hidden sm:block text-right">
-                      <div className="text-xs text-slate-500 mb-1">
-                        Last Login
-                      </div>
-                      <div className="text-sm font-medium text-slate-700">
-                        {u.lastLoginAt
-                          ? new Date(
-                              u.lastLoginAt.toDate(),
-                            ).toLocaleDateString()
-                          : "Never"}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {editingUserId === u.id ? (
-                        <>
-                          <button
-                            onClick={() => handleSaveEdit(u.id)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          >
-                            <Save size={18} />
-                          </button>
-                          <button
-                            onClick={() => setEditingUserId(null)}
-                            className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors"
-                          >
-                            <X size={18} />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleEditUser(u.id, u.displayName)}
-                          className="p-2 text-slate-400 hover:text-brand-purple transition-all rounded-lg hover:bg-slate-100"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {users.length === 0 && (
-                <div className="text-center py-6 text-slate-500 text-sm">
-                  No users found. Log in with a user account to see them here.
-                </div>
-              )}
-            </div>
+            <span className="text-2xl font-bold tracking-tight text-white">EduPlay</span>
           </div>
-
-          {/* Active Classes */}
-          <div className="bg-white rounded-[24px] p-6 premium-shadow border border-slate-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display font-bold text-xl text-slate-900">
-                Active Classes
-              </h2>
-              <button className="text-brand-purple text-sm font-medium hover:underline">
-                View all
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <ClassRow
-                name="B2 First (FCE) Prep"
-                students={24}
-                progress={75}
-                nextLesson="Today, 2:00 PM"
-                color="brand-purple"
-              />
-              <ClassRow
-                name="A2 Flyers Young Learners"
-                students={18}
-                progress={45}
-                nextLesson="Tomorrow, 10:00 AM"
-                color="brand-blue"
-              />
-              <ClassRow
-                name="Adult Conversation C1"
-                students={12}
-                progress={90}
-                nextLesson="Wed, 6:00 PM"
-                color="brand-green"
-              />
-            </div>
-          </div>
+          <button className="lg:hidden text-indigo-300 hover:text-white" onClick={() => setSidebarOpen(false)}>
+            <X size={24} />
+          </button>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-8">
-          {/* Quick Actions */}
-          <div className="bg-white rounded-[24px] p-6 premium-shadow border border-slate-100">
-            <h2 className="font-display font-bold text-xl text-slate-900 mb-6">
-              Quick Actions
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <QuickAction
-                icon={Gamepad2}
-                label="Assign Game"
-                color="brand-purple"
-              />
-              <QuickAction
-                icon={Award}
-                label="Send Awards"
-                color="brand-yellow"
-              />
-              <QuickAction
-                icon={Users}
-                label="Message Class"
-                color="brand-blue"
-              />
-              <QuickAction
-                icon={TrendingUp}
-                label="Reports"
-                color="brand-green"
-              />
-            </div>
-          </div>
+        <div className="p-4 flex-1 overflow-y-auto">
+          <p className="text-xs font-semibold text-indigo-400/70 uppercase tracking-wider mb-4 px-4">Menu</p>
+          <nav className="space-y-1.5">
+            {navItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                  ${currentRoute === item.id 
+                    ? 'bg-indigo-600/50 text-white font-medium shadow-sm backdrop-blur-md border border-indigo-500/30' 
+                    : 'text-indigo-200 hover:bg-indigo-800/50 hover:text-white'}
+                `}
+              >
+                <item.icon size={20} className={currentRoute === item.id ? 'text-white' : 'text-indigo-400'} />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          {/* Top Performers Leaderboard snippet */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[24px] p-6 text-white premium-shadow">
-            <h2 className="font-display font-bold text-xl mb-6 flex items-center gap-2">
-              <Award className="text-brand-yellow" /> Top Performers
-            </h2>
-            <div className="space-y-4">
-              <LeaderboardRow rank={1} name="Leo M." score={2450} xp="+150" />
-              <LeaderboardRow rank={2} name="Sofia K." score={2320} xp="+120" />
-              <LeaderboardRow rank={3} name="Marco R." score={2180} xp="+90" />
-            </div>
-            <button className="w-full mt-6 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors">
-              View Full Leaderboard
+        <div className="p-4 border-t border-indigo-800/50">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-indigo-200 hover:bg-red-500/20 hover:text-red-300 transition-all" onClick={() => onViewChange('home')}>
+            <LogOut size={20} />
+            Back to Home
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+        
+        {/* Top Header */}
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-6 z-10 sticky top-0">
+          <div className="flex items-center gap-4">
+            <button 
+              className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={24} />
             </button>
+            <h1 className="text-xl font-bold text-slate-800 hidden sm:block capitalize">
+              {currentRoute.replace('-', ' ')}
+            </h1>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function StatCard({ title, value, change, icon: Icon, color }: any) {
-  return (
-    <div className="bg-white rounded-[20px] p-6 premium-shadow border border-slate-100 flex items-start justify-between">
-      <div>
-        <p className="text-slate-500 font-medium text-sm mb-1">{title}</p>
-        <h3 className="text-3xl font-display font-bold text-slate-900 mb-2">
-          {value}
-        </h3>
-        <p className="text-xs font-medium text-brand-green">{change}</p>
-      </div>
-      <div
-        className={cn(
-          "w-12 h-12 rounded-2xl flex items-center justify-center bg-opacity-10",
-          `bg-${color}/10 text-${color}`,
-        )}
-      >
-        <Icon size={24} />
-      </div>
-    </div>
-  );
-}
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* Search */}
+            <div className="hidden md:flex relative group">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+              <input 
+                type="text" 
+                placeholder="Quick search..." 
+                className="pl-10 pr-4 py-2 w-64 bg-slate-100 border-transparent focus:bg-white border focus:border-indigo-300 rounded-full text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+              />
+            </div>
+            
+            {/* Notifications */}
+            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+              <Bell size={20} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
 
-function ClassRow({ name, students, progress, nextLesson, color }: any) {
-  return (
-    <div className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
-      <div className="flex items-center gap-4">
-        <div className={cn("w-2 h-12 rounded-full", `bg-${color}`)} />
-        <div>
-          <h4 className="font-bold text-slate-900">{name}</h4>
-          <p className="text-sm text-slate-500">
-            {students} Students • Next: {nextLesson}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-6">
-        <div className="hidden sm:block w-32">
-          <div className="flex justify-between text-xs font-medium mb-1">
-            <span className="text-slate-500">Progress</span>
-            <span className="text-slate-900">{progress}%</span>
+            {/* Admin Profile */}
+            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-bold text-slate-700">Admin</p>
+                <p className="text-xs text-slate-500">Super Admin</p>
+              </div>
+              <Avatar src="https://ui-avatars.com/api/?name=Admin" alt="Admin" />
+            </div>
           </div>
-          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className={cn("h-full rounded-full", `bg-${color}`)}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-        <button className="text-slate-400 hover:text-slate-900 opacity-0 group-hover:opacity-100 transition-all">
-          <MoreVertical size={20} />
-        </button>
-      </div>
-    </div>
-  );
-}
+        </header>
 
-function QuickAction({ icon: Icon, label, color }: any) {
-  return (
-    <button className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all group">
-      <div
-        className={cn(
-          "w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm group-hover:scale-110 transition-transform",
-          `text-${color}`,
-        )}
-      >
-        <Icon size={20} />
-      </div>
-      <span className="text-sm font-semibold text-slate-700">{label}</span>
-    </button>
-  );
-}
-
-function LeaderboardRow({ rank, name, score, xp }: any) {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
-      <div className="flex items-center gap-3">
-        <div
-          className={cn(
-            "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-            rank === 1
-              ? "bg-brand-yellow text-slate-900"
-              : rank === 2
-                ? "bg-slate-300 text-slate-900"
-                : "bg-brand-orange text-white",
+        {/* Scrollable View Area */}
+        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative">
+           
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-slate-500">Loading user data...</div>
+            </div>
+          ) : (
+            <>
+              {currentRoute === 'dashboard' && <DashboardOverview users={users} />}
+              {currentRoute === 'users' && <UsersManagement users={users} />}
+              {currentRoute === 'settings' && (
+                  <div className="max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                     <h2 className="text-2xl font-bold text-slate-800 mb-6">Platform Settings</h2>
+                     <div className="space-y-6">
+                        <div className="flex items-center justify-between py-4 border-t border-slate-100">
+                           <div>
+                              <h4 className="font-medium text-slate-800">Maintenance Mode</h4>
+                              <p className="text-sm text-slate-500">Prevent new logins during updates</p>
+                           </div>
+                           <button 
+                             onClick={toggleMaintenanceMode}
+                             className={`w-12 h-6 ${maintenanceMode ? 'bg-indigo-500' : 'bg-slate-200'} rounded-full relative transition-colors duration-200 focus:outline-none`}
+                           >
+                              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all duration-200 ${maintenanceMode ? 'left-7' : 'left-1'}`}></div>
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+              )}
+            </>
           )}
-        >
-          {rank}
         </div>
-        <div className="font-medium">{name}</div>
-      </div>
-      <div className="text-right">
-        <div className="font-bold text-brand-yellow">{score}</div>
-        <div className="text-xs text-slate-400">{xp} XP</div>
-      </div>
+      </main>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      `}} />
     </div>
   );
 }

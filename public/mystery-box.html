@@ -791,7 +791,7 @@
           >
             ${!isOpened ? `<div class="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors rounded-[2rem]"></div>` : ""}
             ${box.letter}
-            ${!isOpened ? `<i data-lucide="gift" class="w-6 h-6 sm:w-8 sm:h-8 mt-1 sm:mt-2 text-white/80 group-hover:text-white transition-colors drop-shadow-md"></i>` : ""}
+            ${!isOpened ? `<img src="https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w1000" alt="box" referrerpolicy="no-referrer" class="w-16 h-16 sm:w-20 sm:h-20 mt-1 sm:mt-2 drop-shadow-lg object-contain group-hover:scale-110 transition-transform" />` : ""}
           </button>
         `;
           })
@@ -922,7 +922,7 @@
               <div class="flex flex-col md:flex-row justify-center gap-6">
                 <button onclick="handleDecision(${currentTeamIdx})" class="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-8 bg-[#fff8f1] hover:bg-[#ffedd5] text-[#f97316] border-[3px] border-[#fb923c] rounded-[1.5rem] transition-all hover:-translate-y-1 shadow-sm">
                   <div class="flex items-center gap-3 font-black text-3xl">
-                    <i data-lucide="gift" class="w-8 h-8" stroke-width="2.5"></i> KEEP IT
+                    <img src="https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w1000" alt="box" referrerpolicy="no-referrer" class="w-14 h-14 object-contain drop-shadow-lg" /> KEEP IT
                   </div>
                   <span class="text-sm font-bold opacity-80">(Applies to ${teams[currentTeamIdx].name})</span>
                 </button>

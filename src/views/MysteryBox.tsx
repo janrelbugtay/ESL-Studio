@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { ViewState } from "../types";
+import { FullscreenButton } from "../components/FullscreenButton";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../lib/firebase";
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
@@ -113,6 +114,7 @@ export function MysteryBox({
         <h1 className="ml-4 font-black text-xl text-slate-800">
           Mystery Box Game
         </h1>
+        <div className="ml-auto flex items-center"><FullscreenButton targetId="game-container" /></div>
       </div>
       <iframe
         ref={iframeRef}

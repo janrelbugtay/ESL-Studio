@@ -32,8 +32,7 @@ function FeaturedGamesSection({
       time: "15m",
       subject: "Trivia",
       grade: "A2-B1",
-      imageUrl:
-        "https://drive.google.com/thumbnail?id=1ow-oY-KHIgUk5ptEfIf62havduvAnPrZ&sz=w1000",
+      imageUrl: "/images/mystery-box.png",
       isAI: false,
       color: "from-orange-400 to-yellow-500",
       icon: "🎁",
@@ -48,7 +47,7 @@ function FeaturedGamesSection({
       time: "10m",
       subject: "Vocabulary",
       grade: "A2-C1",
-      imageUrl: "https://drive.google.com/thumbnail?id=1SwpHu56pONLE8PoHtKa2ksedp8jx3sTp&sz=w1000",
+      imageUrl: "https://drive.google.com/thumbnail?id=1kovfYZSlp6X8HTqQ9OF_gSpf3wgJgNYG&sz=w1000",
       isAI: false,
       color: "from-cyan-400 to-purple-500",
       icon: "⚡",
@@ -63,7 +62,7 @@ function FeaturedGamesSection({
       time: "5m",
       subject: "Grammar",
       grade: "A1-B1",
-      imageUrl: "",
+      imageUrl: "/images/bubble-pop.png",
       isAI: false,
       color: "from-blue-400 to-cyan-400",
       icon: "🫧",
@@ -78,7 +77,7 @@ function FeaturedGamesSection({
       time: "5-10m",
       subject: "Vocabulary",
       grade: "All",
-      imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+      imageUrl: "https://drive.google.com/thumbnail?id=1UtaZtVX0onrqj3VorxedOxy1iVXdFAHk&sz=w1000",
       isAI: false,
       color: "from-indigo-400 to-purple-500",
       icon: "🎴",
@@ -93,7 +92,7 @@ function FeaturedGamesSection({
       time: "10m",
       subject: "Grammar",
       grade: "A1-B1",
-      imageUrl: "",
+      imageUrl: "https://drive.google.com/thumbnail?id=136UAXGhVDr4ZhJd3bRABHDKp40RJIQSJ&sz=w1000",
       isAI: false,
       color: "from-blue-500 to-sky-300",
       icon: "🎈",
@@ -108,10 +107,38 @@ function FeaturedGamesSection({
       time: "10m",
       subject: "Grammar",
       grade: "All",
-      imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+      imageUrl: "https://drive.google.com/thumbnail?id=16viKskpD4hXygTg-0UaGSjfrWibNoqeQ&sz=w1000",
       isAI: false,
       color: "from-teal-400 to-emerald-500",
       icon: "🧘‍♀️",
+    },
+    {
+      id: "family-feud",
+      title: "Family Feud",
+      description: "Survey says! Compete to find the most popular answers to fun questions.",
+      difficulty: "Medium",
+      players: "2 Teams",
+      time: "15m",
+      subject: "Vocabulary",
+      grade: "All",
+      imageUrl: "https://drive.google.com/thumbnail?id=1DDWdERo9zS6SEbpXA7J8FSh__1CNqxZN&sz=w1000",
+      isAI: false,
+      color: "from-yellow-400 to-orange-500",
+      icon: "👨‍👩‍👧‍👦",
+    },
+    {
+      id: "sumo",
+      title: "Sumo Tags",
+      description: "Battle it out in a tug-of-war style question tags showdown!",
+      difficulty: "Medium",
+      players: "2 Teams",
+      time: "10m",
+      subject: "Grammar",
+      grade: "All",
+      imageUrl: "/images/sumo.png",
+      isAI: false,
+      color: "from-indigo-600 to-red-600",
+      icon: "🤼",
     },
   ];
 
@@ -148,34 +175,37 @@ function GameCard({
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
       onClick={() => onViewChange && onViewChange(game.id as ViewState)}
-      className="w-full bg-white border border-[#e2e8f0] rounded-[32px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.06)] group hover:-translate-y-1 transition-transform flex flex-col cursor-pointer"
+      className="w-full relative aspect-[1000/791] bg-white border border-[#e2e8f0] rounded-[32px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.06)] group hover:-translate-y-1 hover:shadow-xl transition-all cursor-pointer"
     >
       {game.imageUrl ? (
-        <img
-          src={game.imageUrl}
-          alt={game.title}
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover"
-        />
-      ) : (
         <>
-          <div
-            className={cn(
-              "h-36 relative flex items-center justify-center bg-gradient-to-br",
-              game.color,
-            )}
-          >
-            <span className="text-6xl drop-shadow-md group-hover:scale-110 transition-transform duration-500">
-              {game.icon}
-            </span>
-          </div>
-
-          <div className="p-6 flex-1 flex items-center justify-center">
-            <h3 className="font-bold text-xl text-slate-800 text-center">
-              {game.title}
-            </h3>
+          <img
+            src={game.imageUrl}
+            alt={game.title}
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+          <div className="absolute inset-0 bg-brand-purple/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand-purple shadow-lg transform scale-50 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 delay-75">
+              <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+            </div>
           </div>
         </>
+      ) : (
+        <div
+          className={cn(
+            "w-full h-full flex items-center justify-center bg-gradient-to-br",
+            game.color,
+          )}
+        >
+          {game.icon?.startsWith("http") ? (
+             <img src={game.icon} referrerPolicy="no-referrer" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <span className="text-7xl drop-shadow-md group-hover:scale-110 transition-transform duration-500">
+              {game.icon}
+            </span>
+          )}
+        </div>
       )}
     </motion.div>
   );

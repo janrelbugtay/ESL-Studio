@@ -5,6 +5,7 @@ import {
   Crosshair, Settings, Users, Clock, ShieldAlert, ArrowLeft, Sun, Moon
 } from 'lucide-react';
 import { ViewState } from "../types";
+import { FullscreenButton } from "../components/FullscreenButton";
 
 const STARTING_WORDS = ['neon', 'cyber', 'pixel', 'matrix', 'laser', 'plasma', 'quantum', 'vector', 'holo', 'nexus'];
 const CUSTOM_ALLOWED_WORDS = ['x-ray', 'xray', 'x-rays', 'xrays'];
@@ -400,8 +401,8 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
           }`}
         >
           {isLight ? <Moon size={18} /> : <Sun size={18} />}
-          <span className="text-sm font-bold hidden sm:inline">{isLight ? 'Neon Mode' : 'Light Mode'}</span>
-        </button>
+          <span className="text-sm font-bold hidden sm:inline">{isLight ? 'Neon Mode' : 'Light Mode'}</span>        </button>
+        <FullscreenButton targetId="game-container" className={`p-2 rounded-full transition-colors backdrop-blur-md border ${isLight ? "bg-white/80 text-slate-800 hover:bg-white border-slate-200 shadow-sm" : "bg-white/10 text-white hover:bg-white/20 border-white/20"}`} />
 
         {/* End Game / Return to Lobby Button */}
         {gameState !== 'lobby' && (

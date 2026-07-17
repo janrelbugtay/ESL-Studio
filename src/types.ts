@@ -12,7 +12,9 @@ export type ViewState =
   | "bubble-pop"
   | "flashcards-match"
   | "yoga-quiz"
-  | "bubble-sentence-pro";
+  | "bubble-sentence-pro"
+  | "family-feud"
+  | "sumo";
 
 export interface Game {
   id: string;

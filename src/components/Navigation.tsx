@@ -163,6 +163,14 @@ export function Header({
                     </p>
                   </div>
                   <div className="py-2 border-t border-slate-50">
+                    {isAdmin && (
+                        <button
+                          onClick={() => handleDropdownItemClick("admin-dashboard")}
+                          className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-purple transition-colors"
+                        >
+                          Admin Dashboard
+                        </button>
+                    )}
                     <button
                       onClick={() => {
                         logout();
