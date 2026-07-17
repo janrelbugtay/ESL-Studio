@@ -175,7 +175,7 @@ function GameCard({
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
       onClick={() => onViewChange && onViewChange(game.id as ViewState)}
-      className="w-full relative aspect-[1000/791] bg-white border border-[#e2e8f0] rounded-[32px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.06)] group hover:-translate-y-1 hover:shadow-xl transition-all cursor-pointer"
+      className="w-full relative aspect-[1000/791] bg-white border-[6px] border-white rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] group hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] ring-1 ring-slate-100 transition-all duration-300 cursor-pointer"
     >
       {game.imageUrl ? (
         <>

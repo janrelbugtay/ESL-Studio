@@ -426,7 +426,7 @@ export function GamesLibrary({
                     setShowNewGameModal(false);
                     onViewChange(template.id as ViewState);
                   }}
-                  className="flex flex-col items-center p-0 rounded-[24px] border-2 border-slate-100 hover:border-brand-purple hover:shadow-xl hover:-translate-y-1 transition-all text-center group overflow-hidden aspect-[1000/791] relative cursor-pointer"
+                  className="flex flex-col items-center p-0 rounded-[32px] border-[6px] border-white bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] hover:-translate-y-2 ring-1 ring-slate-100 transition-all duration-300 text-center group overflow-hidden aspect-[1000/791] relative cursor-pointer"
                 >
                   {template.icon.startsWith("http") || template.icon.startsWith("/") ? (
                     <>
