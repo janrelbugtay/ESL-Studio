@@ -210,7 +210,7 @@ async function startServer() {
       The JSON array MUST have exactly 26 objects.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash',
+        model: 'gemini-3.5-flash',
         contents: prompt,
         config: {
           responseMimeType: "application/json"
