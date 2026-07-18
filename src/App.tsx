@@ -30,6 +30,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>("home");
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading, signInWithGoogle } = useAuth();
   
   const isAdmin = user?.email === "janrelbugtay03@gmail.com";
@@ -178,9 +179,17 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 overflow-hidden">
-      <Navigation currentView={currentView} onViewChange={handleViewChange} />
+      <Navigation 
+        currentView={currentView} 
+        onViewChange={handleViewChange} 
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onViewChange={handleViewChange} />
+        <Header 
+          onViewChange={handleViewChange} 
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
         <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
           {renderView()}
           <Footer />

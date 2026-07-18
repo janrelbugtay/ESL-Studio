@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import { ViewState } from "../types";
 import {
@@ -9,15 +9,19 @@ import {
   Moon,
   Sun,
   LogOut,
+  Menu,
+  X
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 interface NavigationProps {
   currentView: ViewState;
   onViewChange: (view: ViewState) => void;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
 }
 
-export function Navigation({ currentView, onViewChange }: NavigationProps) {
+export function Navigation({ currentView, onViewChange, isMobileMenuOpen, setIsMobileMenuOpen }: NavigationProps) {
   const { user } = useAuth();
   const isAdmin = user?.email === "janrelbugtay03@gmail.com";
 
@@ -27,57 +31,87 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
   ];
 
   return (
-    <aside className="w-[220px] bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col p-5 shadow-sm shrink-0 h-full">
-      <div
-        className="flex items-center gap-2 mb-8 cursor-pointer"
-        onClick={() => onViewChange("home")}
-      >
-        <img 
-          src="https://drive.google.com/thumbnail?id=1IrQAzr2JXZjfhDxPhP-MZkFlbF8GfW9n&sz=w1000" 
-          alt="Hamster English Logo"
-          className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-purple-200/50 shrink-0"
-          referrerPolicy="no-referrer"
+    <>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
         />
-        <span className="font-bold text-lg leading-tight tracking-tight">
-          Hamster English
-          <br />
-          <span className="text-brand-purple">- ESL Studio</span>
-        </span>
-      </div>
+      )}
+      
+      <aside className={cn(
+        "bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col p-5 shadow-sm shrink-0 h-full",
+        "fixed md:static inset-y-0 left-0 z-50 w-[240px] md:w-[220px] transition-transform duration-300 ease-in-out",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
+        <div className="flex items-center justify-between mb-8">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => {
+              onViewChange("home");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img 
+              src="https://drive.google.com/thumbnail?id=1IrQAzr2JXZjfhDxPhP-MZkFlbF8GfW9n&sz=w1000" 
+              alt="Hamster English Logo"
+              className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-purple-200/50 shrink-0"
+              referrerPolicy="no-referrer"
+            />
+            <span className="font-bold text-lg leading-tight tracking-tight">
+              Hamster English
+              <br />
+              <span className="text-brand-purple">- ESL Studio</span>
+            </span>
+          </div>
+          <button 
+            className="md:hidden text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X size={24} />
+          </button>
+        </div>
 
-      <nav className="space-y-1">
-        {navItems.map((item) => {
-          const isActive =
-            currentView === item.view ||
-            (item.id === "dashboard" &&
-              (currentView === "admin-dashboard" ||
-                currentView === "user-dashboard"));
-          return (
-            <button
-              key={item.id}
-              onClick={() => onViewChange(item.view)}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all",
-                isActive
-                  ? "bg-slate-100 dark:bg-slate-700 text-brand-purple"
-                  : "text-[#64748b] hover:bg-[#f8fafc]",
-              )}
-            >
-              <item.icon size={20} />
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
+        <nav className="space-y-1">
+          {navItems.map((item) => {
+            const isActive =
+              currentView === item.view ||
+              (item.id === "dashboard" &&
+                (currentView === "admin-dashboard" ||
+                  currentView === "user-dashboard"));
 
-    </aside>
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onViewChange(item.view);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all",
+                  isActive
+                    ? "bg-slate-100 dark:bg-slate-700 text-brand-purple"
+                    : "text-[#64748b] hover:bg-[#f8fafc] dark:hover:bg-slate-800/50",
+                )}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 }
 
 export function Header({
   onViewChange,
+  setIsMobileMenuOpen,
 }: {
   onViewChange?: (view: ViewState) => void;
+  setIsMobileMenuOpen: (open: boolean) => void;
 }) {
   const { user, signInWithGoogle, logout, loading } = useAuth();
   const [showDropdown, setShowDropdown] = React.useState(false);
@@ -103,21 +137,28 @@ export function Header({
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-8 bg-white dark:bg-slate-800/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shrink-0">
-      <div className="flex items-center gap-4 w-1/3">
-        <div className="relative w-full">
+    <header className="h-16 flex items-center justify-between px-4 md:px-8 bg-white dark:bg-slate-800/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shrink-0">
+      <div className="flex items-center gap-2 md:gap-4 w-1/2 md:w-1/3">
+        <button 
+          className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 p-2"
+          onClick={() => setIsMobileMenuOpen(true)}
+        >
+          <Menu size={24} />
+        </button>
+        <div className="relative w-full hidden sm:block">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 opacity-60"
             size={18}
           />
           <input
             type="text"
-            placeholder="Search games or topics..."
-            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+            placeholder="Search games..."
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
           />
         </div>
       </div>
-      <div className="flex items-center gap-6">
+
+      <div className="flex items-center gap-2 md:gap-6">
         <button 
           onClick={toggleDarkMode}
           className="text-slate-400 hover:text-brand-purple transition-colors bg-slate-100 hover:bg-slate-200 p-2 rounded-full dark:bg-slate-800 dark:hover:bg-slate-700"
@@ -129,7 +170,7 @@ export function Header({
           (user ? (
             <div className="relative">
               <div
-                className="flex items-center gap-3 cursor-pointer"
+                className="flex items-center gap-3 cursor-pointer p-1"
                 onClick={() => setShowDropdown(!showDropdown)}
               >
                 {user.photoURL ? (
@@ -148,8 +189,8 @@ export function Header({
               </div>
 
               {showDropdown && (
-                <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-slate-50">
+                <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700">
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
                       {user.displayName || "User"}
                     </p>
@@ -157,11 +198,11 @@ export function Header({
                       {user.email}
                     </p>
                   </div>
-                  <div className="py-2 border-t border-slate-50">
+                  <div className="py-2">
                     {isAdmin && (
                         <button
                           onClick={() => handleDropdownItemClick("admin-dashboard")}
-                          className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-purple transition-colors"
+                          className="w-full text-left px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-purple transition-colors"
                         >
                           Admin Dashboard
                         </button>
@@ -171,7 +212,7 @@ export function Header({
                         logout();
                         setShowDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-orange transition-colors flex items-center justify-between"
+                      className="w-full text-left px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-orange transition-colors flex items-center justify-between"
                     >
                       Sign Out
                       <LogOut size={14} />
@@ -183,7 +224,7 @@ export function Header({
           ) : (
             <button
               onClick={signInWithGoogle}
-              className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold py-1.5 px-4 rounded-full text-sm transition-colors shadow-sm"
+              className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold py-1.5 px-3 md:px-4 rounded-full text-sm transition-colors shadow-sm whitespace-nowrap"
             >
               Sign In
             </button>
