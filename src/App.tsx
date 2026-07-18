@@ -31,7 +31,7 @@ export default function App() {
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user, loading, signInWithGoogle, authError } = useAuth();
   
   const isAdmin = user?.email === "janrelbugtay03@gmail.com";
 
@@ -68,12 +68,10 @@ export default function App() {
               Please sign in with Google to access games and other features.
             </p>
             
-            {/* @ts-ignore */}
-            {useAuth().authError && (
+            {authError && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl text-left">
                 <p className="text-sm text-red-600 dark:text-red-400 font-medium whitespace-pre-line">
-                  {/* @ts-ignore */}
-                  {useAuth().authError}
+                  {authError}
                 </p>
               </div>
             )}
