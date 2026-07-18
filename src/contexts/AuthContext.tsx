@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else if (error.code === 'auth/popup-closed-by-user') {
         // User closed the popup, do nothing
       } else if (error.code === 'auth/unauthorized-domain') {
-        alert(`Sign in failed: Unauthorized domain.\n\nPlease ensure this App URL is added to your Firebase Authorized Domains.`);
+        alert(`Sign in failed: Unauthorized domain.\n\nTo fix this:\n1. Go to console.firebase.google.com\n2. Open your project\n3. Go to Authentication -> Settings -> Authorized domains\n4. Add your domain (e.g. hamsterenglish.online) to the list.`);
       } else {
         alert(`Sign in failed: ${error.message}\n\nNote: Google Sign-In may be blocked inside the preview iframe by your browser. Please try opening the app in a new tab (using the button in the top right), and ensure this domain is added to your Firebase Authorized Domains.`);
       }
