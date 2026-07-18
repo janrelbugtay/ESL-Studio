@@ -53,6 +53,30 @@ export default function App() {
   };
 
   const renderView = () => {
+    if (!user && currentView !== "home") {
+      return (
+        <div className="flex flex-col items-center justify-center h-full min-h-[60vh] p-4">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-700 text-center max-w-md w-full">
+            <div className="w-16 h-16 bg-brand-yellow/20 text-brand-yellow rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+              Login Required
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-8">
+              Please sign in with Google to access games and other features.
+            </p>
+            <button
+              onClick={signInWithGoogle}
+              className="w-full bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors shadow-sm"
+            >
+              Sign In with Google
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentView) {
       case "home":
         return <Home onViewChange={handleViewChange} />;
@@ -75,7 +99,7 @@ export default function App() {
       case "yoga-quiz":
         return <YogaQuiz onViewChange={handleViewChange} />;
       case "bubble-sentence-pro":
-        return <BubbleSentencePro onViewChange={handleViewChange} />;
+        return <BubbleSentencePro onViewChange={handleViewChange} initialGame={selectedGame} />;
       case "family-feud":
         return <FamilyFeud onViewChange={handleViewChange} initialGame={selectedGame} />;
       case "sumo":
@@ -89,7 +113,7 @@ export default function App() {
         return (
           <div className="min-h-[60vh] flex items-center justify-center">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
                 Coming Soon
               </h2>
               <p className="text-slate-500">This view is under construction.</p>
@@ -109,7 +133,7 @@ export default function App() {
 
   if (isMaintenanceMode && loading) {
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-[#F8FAFC]">
+      <div className="flex items-center justify-center h-screen w-full bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -117,12 +141,12 @@ export default function App() {
 
   if (isMaintenanceMode && !isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen w-full bg-[#F8FAFC] font-sans text-slate-800 p-6 text-center">
-        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl max-w-lg w-full border border-slate-100 flex flex-col items-center">
+      <div className="flex flex-col items-center justify-center h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 p-6 text-center">
+        <div className="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-3xl shadow-xl max-w-lg w-full border border-slate-100 flex flex-col items-center">
           <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-6 text-orange-500">
             <AlertTriangle size={40} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-4 tracking-tight">We’re Sorry!</h1>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4 tracking-tight">We’re Sorry!</h1>
           <p className="text-slate-600 mb-4 leading-relaxed">
             Our app is currently undergoing maintenance to improve your experience. We apologize for the inconvenience and appreciate your patience.
           </p>
@@ -142,7 +166,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#F8FAFC] font-sans text-slate-800 overflow-hidden">
+    <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 overflow-hidden">
       <Navigation currentView={currentView} onViewChange={handleViewChange} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onViewChange={handleViewChange} />

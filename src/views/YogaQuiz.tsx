@@ -133,10 +133,6 @@ export function YogaQuiz({ onViewChange }: { onViewChange: (view: ViewState) => 
             25% { transform: translateX(-10px); }
             75% { transform: translateX(10px); }
         }
-        .custom-scroll::-webkit-scrollbar { width: 8px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #99f6e4; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #5eead4; }
       `}</style>
 
       {/* Top Navbar */}
@@ -206,7 +202,7 @@ function QuizLobby({ quizzes, navigateTo, onDelete }: { quizzes: Quiz[], navigat
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scroll pb-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pr-2">
           {quizzes.map((quiz) => (
             <div key={quiz.id} className="bg-white rounded-3xl p-6 border-2 border-teal-100 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all duration-300 group flex flex-col relative overflow-hidden">
@@ -400,18 +396,18 @@ function QuizEditor({ quiz, onSave, onCancel }: { quiz: Quiz, onSave: (q: Quiz) 
   const poses = ['🧘‍♀️ Pose A', '🙆‍♀️ Pose B', '🧎‍♀️ Pose C'];
 
   return (
-    <div className="h-full flex flex-col w-full max-w-5xl mx-auto animate-pop bg-white rounded-[2.5rem] shadow-xl border-4 border-teal-100 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-teal-50 rounded-bl-full pointer-events-none"></div>
+    <div className="h-full flex flex-col w-full max-w-5xl mx-auto animate-pop bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl border-4 border-teal-100 dark:border-teal-900/50 overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-teal-50 dark:bg-teal-900/20 rounded-bl-full pointer-events-none"></div>
       
       {/* Editor Header */}
-      <div className="px-8 py-6 border-b-2 border-teal-50 flex flex-wrap gap-4 items-center justify-between bg-white relative z-10 shrink-0">
+      <div className="px-8 py-6 border-b-2 border-teal-50 dark:border-slate-700 flex flex-wrap gap-4 items-center justify-between bg-white dark:bg-slate-800 relative z-10 shrink-0">
         <div className="flex-1 min-w-[250px]">
             <input 
             type="text" 
             placeholder="Quiz Title (e.g., Present Continuous)" 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-3xl font-black bg-transparent border-none outline-none placeholder:text-teal-200 text-teal-900 w-full mb-2"
+            className="text-3xl font-black bg-transparent border-none outline-none placeholder:text-teal-200 dark:placeholder:text-teal-700 text-teal-900 dark:text-white w-full mb-2"
             />
             <div className="flex gap-4">
                 <input 
@@ -419,27 +415,27 @@ function QuizEditor({ quiz, onSave, onCancel }: { quiz: Quiz, onSave: (q: Quiz) 
                 placeholder="Subject" 
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="text-sm font-bold bg-teal-50 border-2 border-teal-100 outline-none placeholder:text-teal-300 text-teal-700 px-4 py-1.5 rounded-lg focus:border-teal-400"
+                className="text-sm font-bold bg-teal-50 dark:bg-slate-700 border-2 border-teal-100 dark:border-slate-600 outline-none placeholder:text-teal-300 dark:placeholder:text-teal-500 text-teal-700 dark:text-teal-200 px-4 py-1.5 rounded-lg focus:border-teal-400 dark:focus:border-teal-500"
                 />
                 <input 
                 type="text" 
                 placeholder="Topic" 
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="text-sm font-bold bg-teal-50 border-2 border-teal-100 outline-none placeholder:text-teal-300 text-teal-700 px-4 py-1.5 rounded-lg focus:border-teal-400"
+                className="text-sm font-bold bg-teal-50 dark:bg-slate-700 border-2 border-teal-100 dark:border-slate-600 outline-none placeholder:text-teal-300 dark:placeholder:text-teal-500 text-teal-700 dark:text-teal-200 px-4 py-1.5 rounded-lg focus:border-teal-400 dark:focus:border-teal-500"
                 />
                 <input 
                 type="text" 
                 placeholder="Class" 
                 value={classLevel}
                 onChange={(e) => setClassLevel(e.target.value)}
-                className="text-sm font-bold bg-teal-50 border-2 border-teal-100 outline-none placeholder:text-teal-300 text-teal-700 px-4 py-1.5 rounded-lg focus:border-teal-400"
+                className="text-sm font-bold bg-teal-50 dark:bg-slate-700 border-2 border-teal-100 dark:border-slate-600 outline-none placeholder:text-teal-300 dark:placeholder:text-teal-500 text-teal-700 dark:text-teal-200 px-4 py-1.5 rounded-lg focus:border-teal-400 dark:focus:border-teal-500"
                 />
             </div>
         </div>
         <div className="flex gap-3 items-center">
           {errorMsg && <span className="text-red-500 text-sm font-bold mr-2 animate-pop">{errorMsg}</span>}
-          <button onClick={onCancel} className="px-5 py-2.5 font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all cursor-pointer">
+          <button onClick={onCancel} className="px-5 py-2.5 font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-slate-700 hover:bg-teal-100 dark:hover:bg-slate-600 rounded-xl transition-all cursor-pointer">
             Cancel
           </button>
           <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md shadow-teal-200 transition-all cursor-pointer">
@@ -449,19 +445,19 @@ function QuizEditor({ quiz, onSave, onCancel }: { quiz: Quiz, onSave: (q: Quiz) 
       </div>
 
       {/* Toolbar */}
-      <div className="px-8 py-4 border-b-2 border-teal-50 flex items-center justify-between bg-white/50 backdrop-blur shrink-0 relative z-10">
-        <p className="text-teal-600 font-bold text-sm">Add questions and assign options to the 3 yoga poses.</p>
+      <div className="px-8 py-4 border-b-2 border-teal-50 dark:border-slate-700 flex items-center justify-between bg-white/50 dark:bg-slate-800/50 backdrop-blur shrink-0 relative z-10">
+        <p className="text-teal-600 dark:text-teal-400 font-bold text-sm">Add questions and assign options to the 3 yoga poses.</p>
         <div className="flex gap-2">
             <button 
                 onClick={() => setShowImportModal(true)}
-                className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-teal-700 bg-teal-100 hover:bg-teal-200 rounded-xl transition-all cursor-pointer shadow-sm"
+                className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-slate-700 hover:bg-teal-200 dark:hover:bg-slate-600 rounded-xl transition-all cursor-pointer shadow-sm"
             >
                 <Download size={16} /> Import CSV
             </button>
             <button 
             onClick={generateWithAI}
             disabled={isGenerating}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-xl transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-xl transition-all cursor-pointer shadow-sm"
             >
             <Sparkles size={16} className={isGenerating ? "animate-pulse" : ""} /> 
             {isGenerating ? "Generating..." : "Auto-Generate with AI"}
@@ -470,34 +466,34 @@ function QuizEditor({ quiz, onSave, onCancel }: { quiz: Quiz, onSave: (q: Quiz) 
       </div>
 
       {/* Rows Container */}
-      <div className="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 bg-teal-50/30 relative z-10">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 bg-teal-50/30 dark:bg-slate-900/50 relative z-10">
         <div className="space-y-6">
           {questions.map((q, index) => (
-            <div key={q.id} className="bg-white p-6 rounded-3xl border-2 border-teal-100 shadow-sm relative group transition-all hover:border-teal-300 hover:shadow-md">
-              <div className="absolute -left-4 -top-4 w-10 h-10 bg-teal-600 text-white font-black rounded-xl flex items-center justify-center shadow-md rotate-[-5deg]">
+            <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-teal-100 dark:border-slate-700 shadow-sm relative group transition-all hover:border-teal-300 dark:hover:border-teal-500 hover:shadow-md">
+              <div className="absolute -left-4 -top-4 w-10 h-10 bg-teal-600 dark:bg-teal-700 text-white font-black rounded-xl flex items-center justify-center shadow-md rotate-[-5deg]">
                 {index + 1}
               </div>
               
-              <button onClick={() => removeQuestion(q.id)} className="absolute top-4 right-4 p-2 text-teal-300 hover:text-red-500 hover:bg-red-50 rounded-lg cursor-pointer opacity-0 group-hover:opacity-100 transition-all">
+              <button onClick={() => removeQuestion(q.id)} className="absolute top-4 right-4 p-2 text-teal-300 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg cursor-pointer opacity-0 group-hover:opacity-100 transition-all">
                   <Trash2 size={20} />
               </button>
 
               <div className="mb-6 ml-6 pr-8">
-                  <label className="block text-xs font-black text-teal-600 uppercase tracking-widest mb-2">Question Text</label>
+                  <label className="block text-xs font-black text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-2">Question Text</label>
                   <input 
                     type="text" 
                     value={q.text}
                     onChange={(e) => updateQuestion(q.id, 'text', e.target.value)}
                     placeholder="e.g. He is happy, ____?"
-                    className="w-full bg-teal-50/50 border-2 border-teal-100 rounded-xl p-4 outline-none focus:border-teal-500 focus:bg-white transition-all font-bold text-lg text-teal-900"
+                    className="w-full bg-teal-50/50 dark:bg-slate-900 border-2 border-teal-100 dark:border-slate-600 rounded-xl p-4 outline-none focus:border-teal-500 dark:focus:border-teal-400 focus:bg-white dark:focus:bg-slate-800 transition-all font-bold text-lg text-teal-900 dark:text-white"
                   />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ml-6">
                   {q.options.map((opt, optIndex) => (
-                      <div key={optIndex} className={`p-4 rounded-2xl border-2 transition-all ${q.answerIndex === optIndex ? 'bg-teal-50 border-teal-500 shadow-sm' : 'bg-white border-teal-100'}`}>
+                      <div key={optIndex} className={`p-4 rounded-2xl border-2 transition-all ${q.answerIndex === optIndex ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-500 dark:border-teal-400 shadow-sm' : 'bg-white dark:bg-slate-700 border-teal-100 dark:border-slate-600'}`}>
                           <div className="flex items-center justify-between mb-3">
-                              <span className="font-black text-teal-800 flex items-center gap-2 text-lg">
+                              <span className="font-black text-teal-800 dark:text-teal-200 flex items-center gap-2 text-lg">
                                   {poses[optIndex]}
                               </span>
                               <label className="flex items-center cursor-pointer">

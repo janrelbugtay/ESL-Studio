@@ -9,10 +9,10 @@ import { db } from '../lib/firebase';
 
 // --- UI COMPONENTS ---
 const Card = ({ children, className = '', title, action }: any) => (
-  <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden ${className}`}>
+  <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden ${className}`}>
     {(title || action) && (
       <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center">
-        {title && <h3 className="font-semibold text-slate-800">{title}</h3>}
+        {title && <h3 className="font-semibold text-slate-800 dark:text-slate-200">{title}</h3>}
         {action && <div>{action}</div>}
       </div>
     )}
@@ -25,14 +25,14 @@ const StatCard = ({ title, value, subtitle, trend, icon: Icon, colorClass, highl
     <div className={`absolute top-0 right-0 w-32 h-32 transform translate-x-12 -translate-y-12 rounded-full opacity-10 transition-transform group-hover:scale-110 ${colorClass}`}></div>
     <div className="flex justify-between items-start mb-4">
       <div>
-        <p className="text-slate-500 text-sm font-medium mb-1 flex items-center gap-2">
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1 flex items-center gap-2">
           {title}
           {isLive && <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
           </span>}
         </p>
-        <h2 className="text-3xl font-bold text-slate-800 flex items-baseline gap-2">
+        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-200 flex items-baseline gap-2">
           {value}
           {highlight && <span className="text-sm font-medium text-slate-400">{highlight}</span>}
         </h2>
@@ -42,7 +42,7 @@ const StatCard = ({ title, value, subtitle, trend, icon: Icon, colorClass, highl
       </div>
     </div>
     {subtitle && (
-      <p className="text-sm text-slate-600 flex items-center gap-1">
+      <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
         {trend && (
           <span className={`font-medium ${trend > 0 ? 'text-emerald-500' : 'text-red-500'} flex items-center`}>
             {trend > 0 ? '+' : ''}{trend}%
@@ -90,7 +90,7 @@ const DashboardOverview = ({ users }: any) => {
       <Card title="Recent Users" action={<button className="text-sm text-indigo-600 font-medium hover:underline">View All</button>}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="text-slate-500 bg-slate-50">
+            <thead className="text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50">
               <tr>
                 <th className="py-3 px-4 rounded-tl-lg font-medium">User</th>
                 <th className="py-3 px-4 font-medium">Email</th>
@@ -99,26 +99,26 @@ const DashboardOverview = ({ users }: any) => {
             </thead>
             <tbody>
               {users.slice(0, 10).map((user: any) => (
-                <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900/50/50 transition-colors">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
                       <Avatar src={user.photoURL} alt={user.displayName || user.email} size="sm" />
                       <div>
-                        <p className="font-medium text-slate-800">{user.displayName || 'Unknown'}</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{user.displayName || 'Unknown'}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-slate-600">
+                  <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
                      {user.email}
                   </td>
-                  <td className="py-3 px-4 text-right text-slate-500">
+                  <td className="py-3 px-4 text-right text-slate-500 dark:text-slate-400">
                     {user.lastLoginAt ? new Date(user.lastLoginAt.toMillis()).toLocaleString() : 'N/A'}
                   </td>
                 </tr>
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="py-4 text-center text-slate-500">
+                  <td colSpan={3} className="py-4 text-center text-slate-500 dark:text-slate-400">
                     No users found.
                   </td>
                 </tr>
@@ -161,13 +161,13 @@ const UsersManagement = ({ users }: any) => {
           <input 
             type="text" 
             placeholder="Search by name or email..." 
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:bg-slate-800 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <button className="px-4 py-2 flex items-center gap-2 text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
+          <button className="px-4 py-2 flex items-center gap-2 text-slate-700 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900/50">
             <Filter size={16} /> Filters
           </button>
         </div>
@@ -175,7 +175,7 @@ const UsersManagement = ({ users }: any) => {
 
       <div className="overflow-auto flex-1 custom-scrollbar">
         <table className="w-full text-left text-sm">
-          <thead className="text-slate-500 bg-slate-50 sticky top-0 z-10 shadow-sm">
+          <thead className="text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 sticky top-0 z-10 shadow-sm">
             <tr>
               <th className="py-4 px-4 font-medium rounded-tl-lg">User</th>
               <th className="py-4 px-4 font-medium">Email</th>
@@ -185,19 +185,19 @@ const UsersManagement = ({ users }: any) => {
           </thead>
           <tbody>
             {filteredUsers.map((user: any) => (
-              <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+              <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900/50/80 transition-colors">
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-3">
                     <Avatar src={user.photoURL} alt={user.displayName || user.email} />
                     <div>
-                      <p className="font-semibold text-slate-800">{user.displayName || 'Unknown'}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">{user.displayName || 'Unknown'}</p>
                     </div>
                   </div>
                 </td>
-                <td className="py-3 px-4 text-slate-600">
+                <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
                   {user.email}
                 </td>
-                <td className="py-3 px-4 text-right text-slate-500">
+                <td className="py-3 px-4 text-right text-slate-500 dark:text-slate-400">
                   {user.lastLoginAt ? new Date(user.lastLoginAt.toMillis()).toLocaleString() : 'N/A'}
                 </td>
                 <td className="py-3 px-4 text-right">
@@ -213,7 +213,7 @@ const UsersManagement = ({ users }: any) => {
             ))}
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-4 text-center text-slate-500">
+                <td colSpan={4} className="py-4 text-center text-slate-500 dark:text-slate-400">
                   No users found matching "{searchTerm}".
                 </td>
               </tr>
@@ -284,7 +284,7 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-slate-50 font-sans overflow-hidden text-slate-800 -mx-4 -my-4 md:-mx-8 md:-my-8" style={{ margin: '-2rem' }}>
+    <div className="flex h-[calc(100vh-4rem)] bg-slate-50 dark:bg-slate-900/50 font-sans overflow-hidden text-slate-800 dark:text-slate-200 -mx-4 -my-4 md:-mx-8 md:-my-8" style={{ margin: '-2rem' }}>
       
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
@@ -342,18 +342,18 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 dark:bg-slate-900/50">
         
         {/* Top Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-6 z-10 sticky top-0">
+        <header className="h-20 bg-white dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/60 flex items-center justify-between px-6 z-10 sticky top-0">
           <div className="flex items-center gap-4">
             <button 
-              className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+              className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 rounded-lg transition-colors"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu size={24} />
             </button>
-            <h1 className="text-xl font-bold text-slate-800 hidden sm:block capitalize">
+            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200 hidden sm:block capitalize">
               {currentRoute.replace('-', ' ')}
             </h1>
           </div>
@@ -365,21 +365,21 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
               <input 
                 type="text" 
                 placeholder="Quick search..." 
-                className="pl-10 pr-4 py-2 w-64 bg-slate-100 border-transparent focus:bg-white border focus:border-indigo-300 rounded-full text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                className="pl-10 pr-4 py-2 w-64 bg-slate-100 border-transparent focus:bg-white dark:bg-slate-800 border focus:border-indigo-300 rounded-full text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
               />
             </div>
             
             {/* Notifications */}
-            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+            <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
               <Bell size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
 
             {/* Admin Profile */}
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+            <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-slate-700">Admin</p>
-                <p className="text-xs text-slate-500">Super Admin</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Super Admin</p>
               </div>
               <Avatar src="https://ui-avatars.com/api/?name=Admin" alt="Admin" />
             </div>
@@ -391,26 +391,26 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
            
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-slate-500">Loading user data...</div>
+              <div className="text-slate-500 dark:text-slate-400">Loading user data...</div>
             </div>
           ) : (
             <>
               {currentRoute === 'dashboard' && <DashboardOverview users={users} />}
               {currentRoute === 'users' && <UsersManagement users={users} />}
               {currentRoute === 'settings' && (
-                  <div className="max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-                     <h2 className="text-2xl font-bold text-slate-800 mb-6">Platform Settings</h2>
+                  <div className="max-w-2xl bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-8">
+                     <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6">Platform Settings</h2>
                      <div className="space-y-6">
-                        <div className="flex items-center justify-between py-4 border-t border-slate-100">
+                        <div className="flex items-center justify-between py-4 border-t border-slate-100 dark:border-slate-700">
                            <div>
-                              <h4 className="font-medium text-slate-800">Maintenance Mode</h4>
-                              <p className="text-sm text-slate-500">Prevent new logins during updates</p>
+                              <h4 className="font-medium text-slate-800 dark:text-slate-200">Maintenance Mode</h4>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">Prevent new logins during updates</p>
                            </div>
                            <button 
                              onClick={toggleMaintenanceMode}
                              className={`w-12 h-6 ${maintenanceMode ? 'bg-indigo-500' : 'bg-slate-200'} rounded-full relative transition-colors duration-200 focus:outline-none`}
                            >
-                              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all duration-200 ${maintenanceMode ? 'left-7' : 'left-1'}`}></div>
+                              <div className={`w-4 h-4 bg-white dark:bg-slate-800 rounded-full absolute top-1 shadow-sm transition-all duration-200 ${maintenanceMode ? 'left-7' : 'left-1'}`}></div>
                            </button>
                         </div>
                      </div>
@@ -422,20 +422,6 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
       </main>
 
       <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
       `}} />
     </div>
   );

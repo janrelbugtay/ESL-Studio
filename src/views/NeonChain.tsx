@@ -450,17 +450,14 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
           100% { opacity: 1; transform: scale(1); }
         }
         .animate-pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.4); border-radius: 10px; }
       `}} />
 
       <div ref={containerRef} className="w-full h-full flex flex-col relative z-10 overflow-hidden pt-12">
         
         {/* === LOBBY SCREEN === */}
         {gameState === 'lobby' && (
-          <div className={`absolute inset-0 z-50 ${isLight ? 'bg-slate-50/90' : 'bg-[#050816]/90'} backdrop-blur-xl flex flex-col items-center p-4 sm:p-8 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-500 pt-16`}>
+          <div className={`absolute inset-0 z-50 ${isLight ? 'bg-slate-50/90' : 'bg-[#050816]/90'} backdrop-blur-xl overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-500`}>
+            <div className="w-full min-h-full flex flex-col items-center p-4 sm:p-8 pt-16">
             <div className="w-full max-w-5xl flex flex-col items-center mt-2 sm:mt-8 mb-12">
                <Sparkles size={48} className="text-cyan-400 mb-4 animate-pulse" />
                <h1 className="text-4xl sm:text-6xl font-orbitron font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 uppercase drop-shadow-lg text-center">
@@ -591,6 +588,7 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                  </button>
                </div>
             </div>
+          </div>
           </div>
         )}
 
@@ -902,7 +900,8 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
           const wColor = tColors[wId];
 
           return (
-            <div className={`absolute inset-0 z-50 ${isLight ? 'bg-slate-50/95' : 'bg-[#050816]/95'} backdrop-blur-2xl flex flex-col items-center p-4 sm:p-8 overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-700 pt-16`}>
+            <div className={`absolute inset-0 z-50 ${isLight ? 'bg-slate-50/95' : 'bg-[#050816]/95'} backdrop-blur-2xl overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-700`}>
+              <div className="w-full min-h-full flex flex-col items-center p-4 sm:p-8 pt-16">
                
                <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
                  {/* Winner Ambient Glow */}
@@ -986,6 +985,7 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                    </button>
                  </div>
                </div>
+            </div>
             </div>
           );
         })()}

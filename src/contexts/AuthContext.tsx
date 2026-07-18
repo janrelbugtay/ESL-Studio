@@ -41,7 +41,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
       console.error('Error signing in with Google', error);
-      alert(`Sign in failed: ${error.message}\n\nNote: Google Sign-In may be blocked inside the preview iframe by your browser. Please try opening the app in a new tab (using the button in the top right), and ensure this domain is added to your Firebase Authorized Domains.`);
+      if (error.code === 'auth/popup-blocked') {
+        alert('Popup blocked by the browser. Please allow popups for this site or click the Sign In button again.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        // User closed the popup, do nothing
+      } else if (error.code === 'auth/unauthorized-domain') {
+        alert(`Sign in failed: Unauthorized domain.\n\nPlease ensure this App URL is added to your Firebase Authorized Domains.`);
+      } else {
+        alert(`Sign in failed: ${error.message}\n\nNote: Google Sign-In may be blocked inside the preview iframe by your browser. Please try opening the app in a new tab (using the button in the top right), and ensure this domain is added to your Firebase Authorized Domains.`);
+      }
     }
   };
 

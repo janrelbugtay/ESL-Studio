@@ -800,19 +800,7 @@
 
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-700">2. Teams</h2>
-                <button onclick="addTeam()" class="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-bold text-sm transition-colors">
-                  <i data-lucide="plus" class="w-4 h-4"></i> Add Team
-                </button>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                ${teamsHtml}
-              </div>
-            </div>
-
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h2 class="text-2xl font-bold mb-6 text-slate-700">3. Auto-Generate Questions</h2>
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">2. Auto-Generate Questions</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label class="block text-sm font-bold text-slate-500 mb-2">Cambridge Level</label>
@@ -845,7 +833,7 @@
             </div>
 
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h2 class="text-2xl font-bold mb-6 text-slate-700">4. Questions List (A-Z)</h2>
+              <h2 class="text-2xl font-bold mb-6 text-slate-700">3. Questions List (A-Z)</h2>
               <div class="space-y-6">${questionsHtml}</div>
             </div>
 
@@ -1410,7 +1398,11 @@
           }
           currentTeamIdx = 0;
           openedBoxes = [];
-          gameState = "playing";
+          if (gameData.editMode) {
+            gameState = "setup";
+          } else {
+            gameState = "playing";
+          }
           renderApp();
         }
       });

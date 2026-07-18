@@ -56,7 +56,7 @@ export function Footer() {
         <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400">
           <p>© 2026 Hamster English - ESL Studio. All rights reserved.</p>
           <p className="flex items-center gap-1">
-            Made with <Heart size={14} className="text-brand-orange" /> for Teachers
+            Created by Teacher Jan <Heart size={14} className="text-brand-orange" /> for Teachers
           </p>
         </div>
       </div>

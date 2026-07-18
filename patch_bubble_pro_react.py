@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import os
+
+content = """import React, { useState, useEffect, useRef } from 'react';
 import { ViewState } from "../types";
 import { FullscreenButton } from "../components/FullscreenButton";
 import { ArrowLeft, Edit3, Trash2, Save, Play, Plus, Sparkles } from "lucide-react";
@@ -309,7 +311,7 @@ function GameEditor({ game, onSave, onCancel, folders }: { game: GameData, onSav
                 <Trash2 size={14} />
               </button>
               
-              <div className="flex gap-4 items-start">
+              <div className="flex gap-4 mb-4 items-start">
                 <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-500 font-bold flex items-center justify-center shrink-0 border border-cyan-500/30">
                   {index + 1}
                 </div>
@@ -320,6 +322,29 @@ function GameEditor({ game, onSave, onCancel, folders }: { game: GameData, onSav
                   placeholder="Type your sentence here..."
                   className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 text-slate-800 dark:text-white font-medium"
                 />
+              </div>
+
+              <div className="ml-12 flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase">Emoji:</label>
+                    <input 
+                        type="text"
+                        value={s.emoji}
+                        onChange={(e) => updateSentence(s.id, 'emoji', e.target.value)}
+                        className="w-16 text-center bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-2 outline-none focus:border-cyan-500 text-2xl"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase">Difficulty (1-5):</label>
+                    <input 
+                        type="number"
+                        min="1"
+                        max="5"
+                        value={s.diff}
+                        onChange={(e) => updateSentence(s.id, 'diff', parseInt(e.target.value) || 1)}
+                        className="w-16 text-center bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-2 outline-none focus:border-cyan-500 font-bold"
+                    />
+                  </div>
               </div>
             </div>
           ))}
@@ -336,3 +361,7 @@ function GameEditor({ game, onSave, onCancel, folders }: { game: GameData, onSav
     </div>
   );
 }
+"""
+
+with open('src/views/BubbleSentencePro.tsx', 'w') as f:
+    f.write(content)

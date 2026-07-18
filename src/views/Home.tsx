@@ -175,7 +175,7 @@ function GameCard({
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
       onClick={() => onViewChange && onViewChange(game.id as ViewState)}
-      className="w-full relative aspect-[1000/791] bg-white border-[6px] border-white rounded-[40px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] group hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] ring-1 ring-slate-100 transition-all duration-300 cursor-pointer"
+      className="w-full relative aspect-[1000/791] bg-white dark:bg-slate-800 border-[6px] border-white rounded-[40px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] group hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] ring-1 ring-slate-100 transition-all duration-300 cursor-pointer"
     >
       {game.imageUrl ? (
         <>
@@ -186,7 +186,7 @@ function GameCard({
             className="w-full h-full object-cover scale-[1.12] group-hover:scale-[1.20] transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-brand-purple/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-            <div className="w-16 h-16 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand-purple shadow-lg transform scale-50 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 delay-75">
+            <div className="w-16 h-16 bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-full flex items-center justify-center text-brand-purple shadow-lg transform scale-50 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 delay-75">
               <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
             </div>
           </div>

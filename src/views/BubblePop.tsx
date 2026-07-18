@@ -824,7 +824,7 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
   }, [screen]);
 
   return (
-    <div id="game-container" className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-[#0f172a] text-white flex flex-col font-['Fredoka',sans-serif] overflow-hidden relative selection:bg-cyan-500/30 rounded-xl" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }} ref={containerRef}>
+    <div id="game-container" className="h-[calc(100vh-2rem)] w-full -m-4 md:-m-8 bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-white flex flex-col font-['Fredoka',sans-serif] overflow-hidden relative selection:bg-cyan-500/30 rounded-xl" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }} ref={containerRef}>
       
       {/* Back button overlay */}
       <button 
@@ -832,7 +832,7 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
             gameState.current.isActive = false;
             onViewChange("home");
         }}
-        className="absolute top-4 left-4 z-[60] flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-white/80 hover:text-white bg-black/20 hover:bg-black/50 border-white/20"
+        className="absolute top-4 left-4 z-[60] flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-slate-600 dark:text-white/80 hover:text-slate-900 dark:hover:text-white bg-slate-200/50 dark:bg-black/20 hover:bg-slate-300/50 dark:hover:bg-black/50 border-slate-300/50 dark:border-white/20"
       >
         <ArrowLeft size={24} />
       </button>
@@ -840,9 +840,14 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
 
       <style>{`
         .glass-panel {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+        .dark .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
@@ -907,21 +912,21 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
       {/* Screen: Setup */}
       {screen === 'setup' && (
         <div className="absolute inset-0 z-40 bg-slate-900 flex flex-col items-center justify-center p-8">
-            <h2 className="text-5xl font-black mb-12 drop-shadow-lg text-white">Select Game Mode</h2>
+            <h2 className="text-5xl font-black mb-12 drop-shadow-lg text-slate-800 dark:text-white">Select Game Mode</h2>
             <div className="flex gap-8 max-w-4xl w-full">
-                <button onClick={() => startGameMode(1)} className="flex-1 glass-panel hover:bg-white/10 rounded-3xl p-10 flex flex-col items-center border-t-4 border-blue-400 transition-transform hover:scale-105 cursor-pointer text-white">
+                <button onClick={() => startGameMode(1)} className="flex-1 glass-panel hover:bg-black/5 dark:hover:bg-white/10 rounded-3xl p-10 flex flex-col items-center border-t-4 border-blue-400 transition-transform hover:scale-105 cursor-pointer text-slate-800 dark:text-white">
                     <div className="text-6xl mb-6 bg-blue-500 w-24 h-24 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.6)]">👤</div>
                     <h3 className="text-3xl font-bold mb-2">1 Player</h3>
                     <p className="text-slate-400 text-center">Practice and earn maximum XP.</p>
                 </button>
-                <button onClick={() => startGameMode(2)} className="flex-1 glass-panel hover:bg-white/10 rounded-3xl p-10 flex flex-col items-center border-t-4 border-red-400 transition-transform hover:scale-105 cursor-pointer text-white">
+                <button onClick={() => startGameMode(2)} className="flex-1 glass-panel hover:bg-black/5 dark:hover:bg-white/10 rounded-3xl p-10 flex flex-col items-center border-t-4 border-red-400 transition-transform hover:scale-105 cursor-pointer text-slate-800 dark:text-white">
                     <div className="text-6xl mb-6 bg-red-500 w-24 h-24 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.6)]">👥</div>
                     <h3 className="text-3xl font-bold mb-2">2 Players</h3>
                     <p className="text-slate-400 text-center">Compete side-by-side!</p>
                 </button>
             </div>
             <div className="flex gap-4 mt-12">
-              <button onClick={() => onViewChange('games')} className="px-8 py-3 rounded-full glass-panel hover:bg-white/20 text-xl font-bold text-white cursor-pointer">Back to Games</button>
+              <button onClick={() => onViewChange('games')} className="px-8 py-3 rounded-full glass-panel hover:bg-white/20 text-xl font-bold text-slate-800 dark:text-white cursor-pointer">Back to Games</button>
               {initialGame && (
                 <button onClick={() => setScreen('editor')} className="px-8 py-3 rounded-full glass-panel border border-blue-500/50 hover:bg-blue-500/20 text-xl font-bold text-blue-300 cursor-pointer">
                   <Edit3 size={18} className="inline mr-2" /> Edit Game
@@ -933,10 +938,10 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
 
       {/* Screen: Loading */}
       {screen === 'loading' && (
-        <div className="absolute inset-0 z-40 bg-[#0f172a] flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 z-40 bg-slate-50 dark:bg-[#0f172a] flex flex-col items-center justify-center relative overflow-hidden">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-[spin_120s_linear_infinite]"></div>
             <div className="text-6xl mb-8 animate-bounce z-10">🫧</div>
-            <h2 className="text-3xl font-bold mb-2 z-10 text-white">Loading Camera & AI...</h2>
+            <h2 className="text-3xl font-bold mb-2 z-10 text-slate-800 dark:text-white">Loading Camera & AI...</h2>
             <p className="text-slate-400 mb-8 z-10">Please grant camera permissions.</p>
             <div className="loading-bar-container z-10">
                 <div className="loading-bar-fill animate-[pulse_2s_infinite]" style={{ width: '100%' }}></div>
@@ -947,13 +952,13 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
       {/* Screen: Game */}
       {screen === 'game' && (
         <div className="absolute inset-0 z-30 flex flex-col">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,#1e3a8a,#0f172a)] z-0 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,#dbeafe,#f8fafc)] dark:bg-[radial-gradient(circle_at_50%_100%,#1e3a8a,#0f172a)] z-0 pointer-events-none"></div>
             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-10"></canvas>
 
             <div className="absolute inset-0 flex flex-col justify-between p-6 pointer-events-none z-20 pt-20">
                 <div className="flex justify-between items-start w-full gap-4">
                     
-                    <div className="glass-panel bg-slate-900/80 rounded-2xl p-4 min-w-[200px] border-l-4 border-blue-500 flex items-center gap-4 backdrop-blur-md">
+                    <div className="glass-panel bg-white/90 dark:bg-slate-900/80 rounded-2xl p-4 min-w-[200px] border-l-4 border-blue-500 flex items-center gap-4 backdrop-blur-md">
                         <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-xl font-bold shadow-[0_0_15px_rgba(59,130,246,0.6)]">P1</div>
                         <div>
                             <div className="text-sm font-bold text-blue-400 uppercase tracking-wider">Score</div>
@@ -961,8 +966,8 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
                         </div>
                     </div>
 
-                    <div className="glass-panel bg-slate-900/90 rounded-2xl flex-grow max-w-4xl p-6 text-center border-t-4 border-indigo-500 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-                        <h1 className="text-2xl md:text-4xl font-black text-white leading-relaxed drop-shadow-md">{questionText}</h1>
+                    <div className="glass-panel bg-white/90 dark:bg-slate-900/90 rounded-2xl flex-grow max-w-4xl p-6 text-center border-t-4 border-indigo-500 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                        <h1 className="text-2xl md:text-4xl font-black text-slate-800 dark:text-white leading-relaxed drop-shadow-md">{questionText}</h1>
                         
                         {showCombo && (
                             <div key={`combo-${combo}`} className="absolute right-4 top-1/2 -translate-y-1/2 text-center animate-pop">
@@ -973,7 +978,7 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
                     </div>
 
                     {numPlayers === 2 ? (
-                        <div className="glass-panel bg-slate-900/80 rounded-2xl p-4 min-w-[200px] border-r-4 border-red-500 flex items-center justify-end gap-4 backdrop-blur-md">
+                        <div className="glass-panel bg-white/90 dark:bg-slate-900/80 rounded-2xl p-4 min-w-[200px] border-r-4 border-red-500 flex items-center justify-end gap-4 backdrop-blur-md">
                             <div className="text-right">
                                 <div className="text-sm font-bold text-red-400 uppercase tracking-wider">Score</div>
                                 <div className="text-3xl font-black">{scores[1]}</div>
@@ -993,8 +998,8 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
                     }} className="glass-panel px-6 py-2 rounded-full hover:bg-white/20 font-bold pointer-events-auto border border-white/20 cursor-pointer">Exit</button>
                     
                     {countdown !== null ? (
-                        <div className="glass-panel bg-blue-900/80 rounded-full px-8 py-3 border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
-                            <span className="text-2xl font-bold text-blue-200">Bubbles in <span className="text-white text-3xl font-black">{countdown}</span>...</span>
+                        <div className="glass-panel bg-blue-100/90 dark:bg-blue-900/80 rounded-full px-8 py-3 border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+                            <span className="text-2xl font-bold text-blue-200">Bubbles in <span className="text-slate-800 dark:text-white text-3xl font-black">{countdown}</span>...</span>
                         </div>
                     ) : <div></div>}
                     <div className="w-[100px]"></div>
@@ -1005,8 +1010,8 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
 
       {/* Screen: Results */}
       {screen === 'results' && (
-        <div className="absolute inset-0 z-50 bg-[#0f121b] flex flex-col items-center justify-center overflow-hidden font-sans">
-            <div className="rounded-3xl p-8 max-w-2xl w-full text-center relative z-10 bg-[#252836] shadow-2xl border border-slate-700/50">
+        <div className="absolute inset-0 z-50 bg-slate-100 dark:bg-[#0f121b] flex flex-col items-center justify-center overflow-hidden font-sans">
+            <div className="rounded-3xl p-8 max-w-2xl w-full text-center relative z-10 bg-white dark:bg-[#252836] shadow-2xl border border-slate-200 dark:border-slate-700/50">
                 <h2 className="text-3xl md:text-4xl font-black text-yellow-400 uppercase tracking-widest mb-6 drop-shadow-sm">{resultsTitle}</h2>
                 <div className="flex justify-center gap-3 mb-10">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -1032,27 +1037,27 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 md:gap-6 mb-10">
-                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                    <div className="bg-slate-50 dark:bg-[#303343] p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-inner flex flex-col items-center justify-center">
                         <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">Accuracy</div>
                         <div className="text-3xl md:text-5xl font-black text-emerald-400 drop-shadow-sm">{accuracy}%</div>
                     </div>
-                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                    <div className="bg-slate-50 dark:bg-[#303343] p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-inner flex flex-col items-center justify-center">
                         <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">Score</div>
                         <div className="text-3xl md:text-5xl font-black text-sky-400 drop-shadow-sm">{numPlayers === 1 ? scores[0] : `P1:${scores[0]} P2:${scores[1]}`}</div>
                     </div>
-                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                    <div className="bg-slate-50 dark:bg-[#303343] p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-inner flex flex-col items-center justify-center">
                         <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">XP Earned</div>
                         <div className="text-2xl md:text-4xl font-black text-fuchsia-400 drop-shadow-sm">+{xpEarned}</div>
                     </div>
-                    <div className="bg-[#303343] p-5 rounded-xl border border-white/5 shadow-inner flex flex-col items-center justify-center">
+                    <div className="bg-slate-50 dark:bg-[#303343] p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-inner flex flex-col items-center justify-center">
                         <div className="text-slate-400 text-xs md:text-sm font-black uppercase tracking-wider mb-2">Coins Earned</div>
                         <div className="text-2xl md:text-4xl font-black text-yellow-400 drop-shadow-sm">+{coinsEarned}</div>
                     </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
-                    <button onClick={() => setScreen('setup')} className="px-8 py-4 bg-[#393c4b] hover:bg-[#444857] rounded-xl font-black text-lg transition-colors cursor-pointer text-white shadow-lg">Back to Setup</button>
-                    <button onClick={() => startGameMode(numPlayers)} className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 rounded-xl font-black text-lg text-white cursor-pointer shadow-lg hover:shadow-indigo-500/25 transition-all">Play Again</button>
+                    <button onClick={() => setScreen('setup')} className="px-8 py-4 bg-slate-200 hover:bg-slate-300 dark:bg-[#393c4b] dark:hover:bg-[#444857] rounded-xl font-black text-lg transition-colors cursor-pointer text-slate-700 dark:text-white shadow-lg">Back to Setup</button>
+                    <button onClick={() => startGameMode(numPlayers)} className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 rounded-xl font-black text-lg text-slate-800 dark:text-white cursor-pointer shadow-lg hover:shadow-indigo-500/25 transition-all">Play Again</button>
                 </div>
             </div>
         </div>
@@ -1183,13 +1188,14 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
   };
 
   return (
-    <div className="absolute inset-0 z-40 bg-slate-900 flex flex-col items-center py-8 px-4 overflow-y-auto">
+    <div className="absolute inset-0 z-40 bg-slate-50 dark:bg-slate-900 overflow-y-auto custom-scrollbar">
+      <div className="w-full min-h-full flex flex-col items-center py-8 px-4">
       <div className="w-full max-w-4xl glass-panel rounded-3xl overflow-hidden flex flex-col shadow-2xl mb-8">
-        <div className="bg-slate-800/80 p-8 flex flex-col gap-6 border-b-2 border-blue-500/50">
+        <div className="bg-white dark:bg-slate-800/80 p-8 flex flex-col gap-6 border-b-2 border-blue-500/50">
             <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-extrabold text-white tracking-wide">GAME EDITOR</h2>
+                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-wide">GAME SETUP</h2>
                 <div className="flex gap-3 items-center">
-                    <button onClick={onCancel} className="px-5 py-2.5 rounded-xl text-slate-300 font-bold hover:bg-slate-700 hover:text-white transition-colors cursor-pointer">
+                    <button onClick={onCancel} className="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
                         Cancel
                     </button>
                     <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30 cursor-pointer">
@@ -1206,7 +1212,7 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                       placeholder="e.g. Present Simple" 
                       value={topic}
                       onChange={(e) => setTopic(e.target.value)}
-                      className="w-full text-sm font-medium bg-slate-900 border border-slate-700 outline-none text-white px-4 py-3 rounded-xl focus:border-blue-500 placeholder-slate-600 transition-colors"
+                      className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none text-slate-800 dark:text-white px-4 py-3 rounded-xl focus:border-blue-500 placeholder-slate-400 dark:placeholder-slate-600 transition-colors"
                     />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -1216,7 +1222,7 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                       placeholder="e.g. KET, Starters" 
                       value={classLevel}
                       onChange={(e) => setClassLevel(e.target.value)}
-                      className="w-full text-sm font-medium bg-slate-900 border border-slate-700 outline-none text-white px-4 py-3 rounded-xl focus:border-blue-500 placeholder-slate-600 transition-colors"
+                      className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none text-slate-800 dark:text-white px-4 py-3 rounded-xl focus:border-blue-500 placeholder-slate-400 dark:placeholder-slate-600 transition-colors"
                     />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -1224,7 +1230,7 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                     <select 
                       value={folderId}
                       onChange={(e) => setFolderId(e.target.value)}
-                      className="w-full text-sm font-medium bg-slate-900 border border-slate-700 outline-none text-white px-4 py-3 rounded-xl focus:border-blue-500 appearance-none cursor-pointer transition-colors"
+                      className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 outline-none text-slate-800 dark:text-white px-4 py-3 rounded-xl focus:border-blue-500 appearance-none cursor-pointer transition-colors"
                     >
                       <option value="">No Folder (Root)</option>
                       {folders.map(f => (
@@ -1241,12 +1247,12 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
           </div>
         )}
 
-        <div className="p-6 flex flex-col gap-6 bg-slate-900/50">
+        <div className="p-6 flex flex-col gap-6 bg-slate-100 dark:bg-slate-900/50">
           {questions.map((q, index) => (
-            <div key={q.id} className="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-sm relative group">
+            <div key={q.id} className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-300 dark:border-slate-700 shadow-sm relative group">
               <button 
                 onClick={() => removeQuestion(q.id)}
-                className="absolute -right-3 -top-3 w-8 h-8 bg-slate-700 text-slate-300 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white border-2 border-slate-900 cursor-pointer"
+                className="absolute -right-3 -top-3 w-8 h-8 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white border-2 border-white dark:border-slate-800 cursor-pointer"
               >
                 <Trash2 size={14} />
               </button>
@@ -1260,7 +1266,7 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                   value={q.text}
                   onChange={(e) => updateQuestion(q.id, 'text', e.target.value)}
                   placeholder="Type your question here..."
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-white font-medium"
+                  className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-slate-800 dark:text-white font-medium"
                 />
               </div>
 
@@ -1272,10 +1278,10 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                       name={`answer-${q.id}`} 
                       checked={q.answerIndex === optIndex}
                       onChange={() => updateQuestion(q.id, 'answerIndex', optIndex)}
-                      className="w-4 h-4 text-blue-500 focus:ring-blue-500 bg-slate-900 border-slate-600"
+                      className="w-4 h-4 text-blue-500 focus:ring-blue-500 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600"
                     />
                     {opt.startsWith('data:image') || opt.startsWith('http') ? (
-                      <div className="flex-1 flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg p-1.5 pr-3">
+                      <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 pr-3">
                         <img src={opt} alt="Option" className="w-8 h-8 rounded object-cover" />
                         <span className="text-xs text-slate-400 flex-1 truncate">Image Generated</span>
                         <button onClick={() => updateOption(q.id, optIndex, '')} className="text-red-400 hover:text-red-300 cursor-pointer p-1">
@@ -1289,7 +1295,7 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                           value={opt}
                           onChange={(e) => updateOption(q.id, optIndex, e.target.value)}
                           placeholder={`Option ${optIndex + 1}`}
-                          className={`flex-1 min-w-0 bg-slate-900 border ${q.answerIndex === optIndex ? 'border-blue-500/50 bg-blue-500/10 text-blue-300' : 'border-slate-700 text-slate-300'} rounded-lg px-3 py-2 outline-none focus:border-blue-500 text-sm font-medium`}
+                          className={`flex-1 min-w-0 bg-slate-50 dark:bg-slate-900 border ${q.answerIndex === optIndex ? 'border-blue-500/50 bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300' : 'border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'} rounded-lg px-3 py-2 outline-none focus:border-blue-500 text-sm font-medium`}
                         />
                         <button 
                           onClick={() => generateImageForOption(q.id, optIndex, opt)}
@@ -1309,19 +1315,20 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
                 ))}
               </div>
               <div className="ml-12 mt-3 flex gap-2">
-                  <button onClick={() => addOption(q.id)} disabled={q.options.length >= 6} className="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded hover:bg-slate-600 disabled:opacity-50 cursor-pointer">+ Option</button>
-                  <button onClick={() => removeOption(q.id)} disabled={q.options.length <= 2} className="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded hover:bg-slate-600 disabled:opacity-50 cursor-pointer">- Option</button>
+                  <button onClick={() => addOption(q.id)} disabled={q.options.length >= 6} className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 cursor-pointer">+ Option</button>
+                  <button onClick={() => removeOption(q.id)} disabled={q.options.length <= 2} className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1 rounded hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 cursor-pointer">- Option</button>
               </div>
             </div>
           ))}
 
           <button 
             onClick={addQuestion}
-            className="w-full py-4 border-2 border-dashed border-slate-700 rounded-2xl text-slate-400 font-bold hover:bg-slate-800 hover:border-slate-500 hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={20} /> Add Another Question
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

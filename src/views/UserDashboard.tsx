@@ -21,10 +21,10 @@ export function UserDashboard() {
           </div>
         )}
         <div>
-          <h1 className="text-3xl font-display font-bold text-slate-900">
+          <h1 className="text-3xl font-display font-bold text-slate-900 dark:text-slate-100">
             Welcome back, {user?.displayName?.split(" ")[0] || "Student"}! 🎮
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Ready for your next learning adventure?
           </p>
         </div>
@@ -64,8 +64,8 @@ export function UserDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Continue Learning */}
-          <div className="bg-white rounded-[24px] p-6 premium-shadow border border-slate-100">
-            <h2 className="font-display font-bold text-xl text-slate-900 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 premium-shadow border border-slate-100 dark:border-slate-700">
+            <h2 className="font-display font-bold text-xl text-slate-900 dark:text-slate-100 mb-6">
               Continue Learning
             </h2>
             <div className="space-y-4">
@@ -87,8 +87,8 @@ export function UserDashboard() {
           </div>
 
           {/* Assignments */}
-          <div className="bg-white rounded-[24px] p-6 premium-shadow border border-slate-100">
-            <h2 className="font-display font-bold text-xl text-slate-900 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 premium-shadow border border-slate-100 dark:border-slate-700">
+            <h2 className="font-display font-bold text-xl text-slate-900 dark:text-slate-100 mb-6">
               New Assignments
             </h2>
             <div className="space-y-4">
@@ -134,10 +134,10 @@ export function UserDashboard() {
 
 function StatCard({ title, value, change, icon: Icon, color }: any) {
   return (
-    <div className="bg-white rounded-[20px] p-6 premium-shadow border border-slate-100 flex items-start justify-between">
+    <div className="bg-white dark:bg-slate-800 rounded-[20px] p-6 premium-shadow border border-slate-100 dark:border-slate-700 flex items-start justify-between">
       <div>
-        <p className="text-slate-500 font-medium text-sm mb-1">{title}</p>
-        <h3 className="text-3xl font-display font-bold text-slate-900 mb-2">
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-1">{title}</p>
+        <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-slate-100 mb-2">
           {value}
         </h3>
         <p className="text-xs font-medium text-brand-green">{change}</p>
@@ -156,7 +156,7 @@ function StatCard({ title, value, change, icon: Icon, color }: any) {
 
 function GameRow({ name, type, progress, completed, color }: any) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors bg-slate-50 hover:bg-white group">
+    <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:border-slate-700 transition-colors bg-slate-50 dark:bg-slate-900/50 hover:bg-white dark:bg-slate-800 group">
       <div className="flex items-center gap-4">
         <div
           className={cn(
@@ -167,8 +167,8 @@ function GameRow({ name, type, progress, completed, color }: any) {
           <Gamepad2 size={24} />
         </div>
         <div>
-          <h4 className="font-bold text-slate-900">{name}</h4>
-          <p className="text-sm text-slate-500">{type}</p>
+          <h4 className="font-bold text-slate-900 dark:text-slate-100">{name}</h4>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{type}</p>
         </div>
       </div>
       <div className="flex items-center gap-6">
@@ -179,8 +179,8 @@ function GameRow({ name, type, progress, completed, color }: any) {
         ) : (
           <div className="hidden sm:block w-32">
             <div className="flex justify-between text-xs font-medium mb-1">
-              <span className="text-slate-500">Progress</span>
-              <span className="text-slate-900">{progress}%</span>
+              <span className="text-slate-500 dark:text-slate-400">Progress</span>
+              <span className="text-slate-900 dark:text-slate-100">{progress}%</span>
             </div>
             <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
               <div
@@ -205,11 +205,11 @@ function GameRow({ name, type, progress, completed, color }: any) {
 
 function AssignmentRow({ name, due, color }: any) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors bg-slate-50 hover:bg-white">
+    <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:border-slate-700 transition-colors bg-slate-50 dark:bg-slate-900/50 hover:bg-white dark:bg-slate-800">
       <div className="flex items-center gap-4">
         <div className="w-2 h-12 rounded-full bg-brand-red" />
         <div>
-          <h4 className="font-bold text-slate-900">{name}</h4>
+          <h4 className="font-bold text-slate-900 dark:text-slate-100">{name}</h4>
           <p className="text-sm text-brand-red font-medium">Due: {due}</p>
         </div>
       </div>
@@ -222,7 +222,7 @@ function AssignmentRow({ name, due, color }: any) {
 
 function AchievementRow({ icon, title, desc }: any) {
   return (
-    <div className="flex items-center gap-4 p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+    <div className="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-slate-800/10 hover:bg-white dark:bg-slate-800/20 transition-colors">
       <div className="text-2xl">{icon}</div>
       <div>
         <div className="font-bold text-white">{title}</div>

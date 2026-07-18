@@ -206,11 +206,11 @@ export function Sumo({ onViewChange }: { onViewChange: (view: ViewState) => void
 
   if (gameState === 'menu') {
     return (
-      <div id="game-container" className="h-[calc(100vh-2rem)] bg-indigo-950 flex items-center justify-center font-sans p-4 overflow-hidden relative" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
+      <div id="game-container" className="h-[calc(100vh-2rem)] bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center font-sans p-4 overflow-hidden relative" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
         <div className="absolute top-4 left-4 z-[60] flex items-center gap-2">
           <button 
             onClick={() => onViewChange("home")}
-            className="flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-white/80 hover:text-white bg-black/20 hover:bg-black/50 border-white/20"
+            className="flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-slate-600 dark:text-white/80 hover:text-slate-900 dark:hover:text-white bg-slate-200/50 dark:bg-black/20 hover:bg-slate-300/50 dark:hover:bg-black/50 border-slate-300/50 dark:border-white/20"
           >
             <ArrowLeft size={24} />
           </button>
@@ -233,11 +233,11 @@ export function Sumo({ onViewChange }: { onViewChange: (view: ViewState) => void
 
   if (gameState === 'end') {
     return (
-      <div id="game-container" className="h-[calc(100vh-2rem)] bg-black/95 flex items-center justify-center font-sans p-4 overflow-hidden relative" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
+      <div id="game-container" className="h-[calc(100vh-2rem)] bg-slate-100 dark:bg-black/95 flex items-center justify-center font-sans p-4 overflow-hidden relative" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
         <div className="absolute top-4 left-4 z-[60] flex items-center gap-2">
           <button 
             onClick={() => onViewChange("home")}
-            className="flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-white/80 hover:text-white bg-black/20 hover:bg-black/50 border-white/20"
+            className="flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-slate-600 dark:text-white/80 hover:text-slate-900 dark:hover:text-white bg-slate-200/50 dark:bg-black/20 hover:bg-slate-300/50 dark:hover:bg-black/50 border-slate-300/50 dark:border-white/20"
           >
             <ArrowLeft size={24} />
           </button>
@@ -257,11 +257,11 @@ export function Sumo({ onViewChange }: { onViewChange: (view: ViewState) => void
   }
 
   return (
-    <div id="game-container" className="h-[calc(100vh-2rem)] w-full bg-indigo-950 p-2 md:p-4 flex flex-col md:flex-row gap-2 md:gap-4 select-none overflow-hidden font-sans relative" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
+    <div id="game-container" className="h-[calc(100vh-2rem)] w-full bg-indigo-50 dark:bg-indigo-950 p-2 md:p-4 flex flex-col md:flex-row gap-2 md:gap-4 select-none overflow-hidden font-sans relative" style={{ margin: '-1rem', height: 'calc(100% + 2rem)' }}>
       <div className="absolute top-4 left-4 z-[60] flex items-center gap-2">
         <button 
           onClick={() => onViewChange("home")}
-          className="flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-white/80 hover:text-white bg-black/20 hover:bg-black/50 border-white/20"
+          className="flex items-center gap-2 p-2 rounded-full transition-colors backdrop-blur-md border text-slate-600 dark:text-white/80 hover:text-slate-900 dark:hover:text-white bg-slate-200/50 dark:bg-black/20 hover:bg-slate-300/50 dark:hover:bg-black/50 border-slate-300/50 dark:border-white/20"
         >
           <ArrowLeft size={24} />
         </button>
@@ -271,17 +271,17 @@ export function Sumo({ onViewChange }: { onViewChange: (view: ViewState) => void
       {/* Blue Team Side */}
       <div className="w-full md:w-1/4 bg-blue-700 rounded-3xl md:rounded-[2.5rem] flex flex-row md:flex-col p-3 md:p-6 pt-16 md:pt-16 shadow-2xl border-b-4 md:border-b-0 md:border-r-8 border-blue-900/50">
         <div className="flex flex-col md:flex-row justify-between items-center mb-0 md:mb-6 pr-4 md:pr-0">
-          <h2 className="text-xs md:text-2xl font-black text-white italic uppercase tracking-widest whitespace-nowrap">BLUE TEAM</h2>
-          <div className="bg-black/30 px-3 md:px-4 py-1 md:py-2 rounded-xl text-xl md:text-3xl font-black text-white">{leftTeam.score}</div>
+          <h2 className="text-xs md:text-2xl font-black text-slate-800 dark:text-white italic uppercase tracking-widest whitespace-nowrap">BLUE TEAM</h2>
+          <div className="bg-slate-200 dark:bg-black/30 px-3 md:px-4 py-1 md:py-2 rounded-xl text-xl md:text-3xl font-black text-slate-800 dark:text-white">{leftTeam.score}</div>
         </div>
         
         <div className="hidden md:flex bg-blue-800/80 flex-1 rounded-3xl p-4 md:p-8 items-center justify-center shadow-inner mb-6 relative overflow-hidden border border-blue-400/20">
-          <p className="text-white text-lg md:text-2xl font-bold text-center leading-relaxed">
+          <p className="text-slate-800 dark:text-white text-lg md:text-2xl font-bold text-center leading-relaxed">
             {renderQuestionText(leftTeam.q?.text || "")}
           </p>
           {leftTeam.stunned && (
             <div className="absolute inset-0 bg-red-600/60 backdrop-blur-sm flex items-center justify-center animate-pulse">
-              <span className="text-white font-black italic text-3xl drop-shadow-lg">MISS!</span>
+              <span className="text-slate-800 dark:text-white font-black italic text-3xl drop-shadow-lg">MISS!</span>
             </div>
           )}
         </div>
@@ -318,10 +318,10 @@ export function Sumo({ onViewChange }: { onViewChange: (view: ViewState) => void
 
         {/* Mobile View Question Text */}
         <div className="md:hidden absolute top-4 left-0 w-full px-4 flex justify-between gap-3 z-10">
-            <div className={`bg-blue-900/90 p-2 rounded-xl text-white text-[10px] font-bold w-1/2 text-center shadow-lg ${leftTeam.stunned ? 'bg-red-900' : ''}`}>
+            <div className={`bg-blue-900/90 p-2 rounded-xl text-slate-100 dark:text-white text-[10px] font-bold w-1/2 text-center shadow-lg ${leftTeam.stunned ? 'bg-red-900' : ''}`}>
                 {leftTeam.stunned ? "MISS!" : leftTeam.q?.text}
             </div>
-            <div className={`bg-red-900/90 p-2 rounded-xl text-white text-[10px] font-bold w-1/2 text-center shadow-lg ${rightTeam.stunned ? 'bg-red-900' : ''}`}>
+            <div className={`bg-red-900/90 p-2 rounded-xl text-slate-100 dark:text-white text-[10px] font-bold w-1/2 text-center shadow-lg ${rightTeam.stunned ? 'bg-red-900' : ''}`}>
                 {rightTeam.stunned ? "MISS!" : rightTeam.q?.text}
             </div>
         </div>
@@ -332,18 +332,18 @@ export function Sumo({ onViewChange }: { onViewChange: (view: ViewState) => void
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-0 md:mb-6 pl-4 md:pl-0 w-full">
-          <div className="bg-black/30 px-3 md:px-4 py-1 md:py-2 rounded-xl text-xl md:text-3xl font-black text-white order-2 md:order-1">{rightTeam.score}</div>
-          <h2 className="text-xs md:text-2xl font-black text-white italic uppercase tracking-widest order-1 md:order-2 whitespace-nowrap">RED TEAM</h2>
+          <div className="bg-slate-200 dark:bg-black/30 px-3 md:px-4 py-1 md:py-2 rounded-xl text-xl md:text-3xl font-black text-slate-800 dark:text-white order-2 md:order-1">{rightTeam.score}</div>
+          <h2 className="text-xs md:text-2xl font-black text-slate-800 dark:text-white italic uppercase tracking-widest order-1 md:order-2 whitespace-nowrap">RED TEAM</h2>
         </div>
 
         {/* Question Area */}
         <div className="hidden md:flex bg-red-800/80 flex-1 rounded-3xl p-4 md:p-8 items-center justify-center shadow-inner mb-6 relative overflow-hidden border border-red-400/20">
-          <p className="text-white text-lg md:text-2xl font-bold text-center leading-relaxed">
+          <p className="text-slate-800 dark:text-white text-lg md:text-2xl font-bold text-center leading-relaxed">
             {renderQuestionText(rightTeam.q?.text || "")}
           </p>
           {rightTeam.stunned && (
             <div className="absolute inset-0 bg-red-600/60 backdrop-blur-sm flex items-center justify-center animate-pulse">
-              <span className="text-white font-black italic text-3xl drop-shadow-lg">MISS!</span>
+              <span className="text-slate-800 dark:text-white font-black italic text-3xl drop-shadow-lg">MISS!</span>
             </div>
           )}
         </div>

@@ -43,10 +43,6 @@ const customStyles = `
   }
 
   /* Custom Scrollbar for Editor */
-  .custom-scroll::-webkit-scrollbar { width: 8px; }
-  .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-  .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-  .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 `;
 
 // --- Mock Data ---
@@ -203,7 +199,7 @@ function TeacherLobby({ activities, navigateTo, onDelete }: any) {
       </div>
 
       {/* Activities Grid */}
-      <div className="flex-1 overflow-y-auto custom-scroll pb-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pr-2">
           {activities.map((activity: any) => (
             <div key={activity.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all group flex flex-col">
@@ -316,19 +312,19 @@ function ActivityEditor({ activity, onSave, onCancel }: any) {
   };
 
   return (
-    <div className="h-full flex flex-col w-full max-w-4xl mx-auto animate-pop bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="h-full flex flex-col w-full max-w-4xl mx-auto animate-pop bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
       
       {/* Editor Header */}
-      <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between bg-slate-50 shrink-0">
+      <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between bg-slate-50 dark:bg-slate-900/50 shrink-0 border-b border-slate-200 dark:border-slate-700">
         <input 
           type="text" 
           placeholder="Activity Title (e.g., Chapter 4 Vocabulary)" 
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="text-2xl font-black bg-transparent border-none outline-none placeholder:text-slate-400 flex-1 min-w-[250px]"
+          className="text-2xl font-black text-slate-900 dark:text-white bg-transparent border-none outline-none placeholder:text-slate-400 flex-1 min-w-[250px]"
         />
         <div className="flex gap-2">
-          <button onClick={onCancel} className="px-4 py-2 font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-all cursor-pointer">
+          <button onClick={onCancel} className="px-4 py-2 font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all cursor-pointer">
             Cancel
           </button>
           <button onClick={handleSave} className="px-6 py-2 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-all cursor-pointer">
@@ -338,12 +334,12 @@ function ActivityEditor({ activity, onSave, onCancel }: any) {
       </div>
 
       {/* Toolbar */}
-      <div className="px-6 py-3 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
+      <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800 shrink-0">
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
+          <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer">
             <FileDown size={16} /> Import
           </button>
-          <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
+          <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer">
             <Settings size={16} /> Settings
           </button>
         </div>
@@ -358,7 +354,7 @@ function ActivityEditor({ activity, onSave, onCancel }: any) {
       </div>
 
       {/* Rows Container */}
-      <div className="flex-1 overflow-y-auto custom-scroll p-6 bg-slate-50/50">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/50">
         <div className="flex font-bold text-slate-500 text-sm mb-2 px-12">
           <div className="flex-1">FRONT SIDE</div>
           <div className="flex-1 ml-4">BACK SIDE (MATCH)</div>

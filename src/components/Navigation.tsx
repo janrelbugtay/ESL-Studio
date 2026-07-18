@@ -7,6 +7,7 @@ import {
   Bell,
   Search,
   Moon,
+  Sun,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,7 +27,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
   ];
 
   return (
-    <aside className="w-[220px] bg-white border-r border-[#e2e8f0] flex flex-col p-5 shadow-sm shrink-0 h-full">
+    <aside className="w-[220px] bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col p-5 shadow-sm shrink-0 h-full">
       <div
         className="flex items-center gap-2 mb-8 cursor-pointer"
         onClick={() => onViewChange("home")}
@@ -58,7 +59,7 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all",
                 isActive
-                  ? "bg-[#f1f5f9] text-brand-purple"
+                  ? "bg-slate-100 dark:bg-slate-700 text-brand-purple"
                   : "text-[#64748b] hover:bg-[#f8fafc]",
               )}
             >
@@ -69,15 +70,6 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
         })}
       </nav>
 
-      <div className="mt-auto">
-        <div className="bg-gradient-to-br from-brand-purple to-brand-blue rounded-[20px] p-4 text-white shadow-xl shadow-purple-200/40">
-          <p className="text-xs opacity-80 mb-1">Available Credits</p>
-          <p className="text-xl font-bold mb-3">1,250 AI Gems</p>
-          <button className="w-full py-2 bg-white/20 backdrop-blur-md rounded-xl text-xs font-bold hover:bg-white/30 transition-colors">
-            Upgrade Plan
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }
@@ -89,6 +81,16 @@ export function Header({
 }) {
   const { user, signInWithGoogle, logout, loading } = useAuth();
   const [showDropdown, setShowDropdown] = React.useState(false);
+  const [isDarkMode, setIsDarkMode] = React.useState(() => document.documentElement.classList.contains('dark'));
+  
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    if (!isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   // Mock admin list, normally from database
   const isAdmin = user?.email === "janrelbugtay03@gmail.com";
@@ -101,7 +103,7 @@ export function Header({
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-8 bg-white/50 backdrop-blur-md border-b border-[#e2e8f0] shrink-0">
+    <header className="h-16 flex items-center justify-between px-8 bg-white dark:bg-slate-800/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shrink-0">
       <div className="flex items-center gap-4 w-1/3">
         <div className="relative w-full">
           <Search
@@ -111,23 +113,16 @@ export function Header({
           <input
             type="text"
             placeholder="Search games or topics..."
-            className="w-full pl-10 pr-4 py-2 bg-white border border-[#e2e8f0] rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple transition-all"
           />
         </div>
       </div>
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 bg-[#f1f5f9] px-3 py-1.5 rounded-full">
-          <span className="text-brand-orange">🔥</span>
-          <span className="font-bold text-sm text-slate-700">
-            12 Day Streak
-          </span>
-        </div>
-        <button className="text-slate-400 hover:text-brand-purple transition-colors">
-          <Moon size={20} />
-        </button>
-        <button className="text-slate-400 hover:text-brand-purple transition-colors relative">
-          <Bell size={20} />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-brand-orange rounded-full border border-white"></span>
+        <button 
+          onClick={toggleDarkMode}
+          className="text-slate-400 hover:text-brand-purple transition-colors bg-slate-100 hover:bg-slate-200 p-2 rounded-full dark:bg-slate-800 dark:hover:bg-slate-700"
+        >
+          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
         {!loading &&
@@ -153,12 +148,12 @@ export function Header({
               </div>
 
               {showDropdown && (
-                <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-slate-50">
-                    <p className="text-sm font-bold text-slate-800 truncate">
+                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
                       {user.displayName || "User"}
                     </p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                       {user.email}
                     </p>
                   </div>
@@ -166,7 +161,7 @@ export function Header({
                     {isAdmin && (
                         <button
                           onClick={() => handleDropdownItemClick("admin-dashboard")}
-                          className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-purple transition-colors"
+                          className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-purple transition-colors"
                         >
                           Admin Dashboard
                         </button>
@@ -176,7 +171,7 @@ export function Header({
                         logout();
                         setShowDropdown(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-orange transition-colors flex items-center justify-between"
+                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-orange transition-colors flex items-center justify-between"
                     >
                       Sign Out
                       <LogOut size={14} />
