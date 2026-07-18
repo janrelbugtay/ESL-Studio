@@ -218,7 +218,18 @@ async function startServer() {
       });
       
       let text = response.text?.trim() || "";
-      const questions = JSON.parse(text);
+      let questions = JSON.parse(text);
+      
+      // Ensure exactly 26 questions
+      if (Array.isArray(questions)) {
+        if (questions.length > 26) {
+          questions = questions.slice(0, 26);
+        } else while (questions.length < 26) {
+          // duplicate the last question to fill up if model failed to generate enough
+          questions.push({...questions[questions.length - 1]});
+        }
+      }
+
       res.json({ questions });
     } catch (err: any) {
       console.error(err);

@@ -66,6 +66,17 @@ export default function App() {
             <p className="text-slate-500 dark:text-slate-400 mb-8">
               Please sign in with Google to access games and other features.
             </p>
+            
+            {/* @ts-ignore */}
+            {useAuth().authError && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl text-left">
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium whitespace-pre-line">
+                  {/* @ts-ignore */}
+                  {useAuth().authError}
+                </p>
+              </div>
+            )}
+            
             <button
               onClick={signInWithGoogle}
               className="w-full bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors shadow-sm"
