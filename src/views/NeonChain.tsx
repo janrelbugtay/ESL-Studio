@@ -96,13 +96,15 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
     teamCount: 2,
     teamNames: ['Team 1', 'Team 2'],
     globalTime: 120,
-    turnTime: 20
+    turnTime: 20,
+    targetWins: 3
   });
 
   const [wordChain, setWordChain] = useState<any[]>([]);
   const [currentInput, setCurrentInput] = useState('');
   const [targetLetter, setTargetLetter] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({ t1: 0, t2: 0, t3: 0, t4: 0 });
+  const [teamWins, setTeamWins] = useState<Record<string, number>>({ t1: 0, t2: 0, t3: 0, t4: 0 });
   const [currentTeam, setCurrentTeam] = useState(1);
   const [timeLeft, setTimeLeft] = useState(120);
   const [turnTimeLeft, setTurnTimeLeft] = useState(20);
@@ -111,6 +113,12 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
   const [shake, setShake] = useState(false);
   const [lastScorePopup, setLastScorePopup] = useState<any>(null);
   const [longestWord, setLongestWord] = useState('');
+
+  const getNextTargetLetter = (word: string) => {
+    if (word.length < 2) return word.slice(-1);
+    const lastChar = word.slice(-1);
+    return lastChar === 'x' ? word[word.length - 2] : lastChar;
+  };
 
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -168,13 +176,18 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
     playSound('start');
     const randomStart = STARTING_WORDS[Math.floor(Math.random() * STARTING_WORDS.length)];
     setWordChain([{ text: randomStart, team: 0, points: 0 }]); // 0 = system starting word
-    setTargetLetter(randomStart.slice(-1));
+    setTargetLetter(getNextTargetLetter(randomStart));
     
     // Reset based on lobby config
     let initialScores: Record<string, number> = {};
-    for(let i=1; i<=config.teamCount; i++) initialScores[`t${i}`] = 0;
+    let initialWins: Record<string, number> = {};
+    for(let i=1; i<=config.teamCount; i++) {
+      initialScores[`t${i}`] = 0;
+      initialWins[`t${i}`] = 0;
+    }
     
     setScores(initialScores);
+    setTeamWins(initialWins);
     setCurrentTeam(1);
     setTimeLeft(config.globalTime);
     setTurnTimeLeft(config.turnTime);
@@ -187,8 +200,20 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
 
   const continueGame = () => {
     playSound('start');
+    const randomStart = STARTING_WORDS[Math.floor(Math.random() * STARTING_WORDS.length)];
+    setWordChain([{ text: randomStart, team: 0, points: 0 }]);
+    setTargetLetter(getNextTargetLetter(randomStart));
+
+    let initialScores: Record<string, number> = {};
+    for(let i=1; i<=config.teamCount; i++) {
+      initialScores[`t${i}`] = 0;
+    }
+    
+    setScores(initialScores);
+    setCurrentTeam(1);
     setTimeLeft(config.globalTime);
     setTurnTimeLeft(config.turnTime);
+    setLongestWord('');
     setGameState('playing');
     setError('');
     setCurrentInput('');
@@ -199,6 +224,27 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
     playSound('victory');
     setGameState('gameover');
     if (reason) triggerError(reason, true);
+
+    setTeamWins(prev => {
+      let maxScore = -Infinity;
+      let winnerIds: number[] = [];
+      for(let i=1; i<=config.teamCount; i++) {
+        if (scores[`t${i}`] > maxScore) {
+          maxScore = scores[`t${i}`];
+          winnerIds = [i];
+        } else if (scores[`t${i}`] === maxScore) {
+          winnerIds.push(i);
+        }
+      }
+      const newWins = { ...prev };
+      if (winnerIds.length === 1) {
+        // Only increment if not a tie, or could increment for all? Let's increment for all that tied just to be safe
+        winnerIds.forEach(id => {
+          newWins[`t${id}`] = (newWins[`t${id}`] || 0) + 1;
+        });
+      }
+      return newWins;
+    });
   };
 
   const triggerError = (msg: string, keep = false) => {
@@ -230,7 +276,7 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
     // Generate a fresh word and assign it to System (team: 0)
     const randomStart = STARTING_WORDS[Math.floor(Math.random() * STARTING_WORDS.length)];
     setWordChain(prev => [...prev, { text: randomStart, team: 0, points: 0 }]);
-    setTargetLetter(randomStart.slice(-1));
+    setTargetLetter(getNextTargetLetter(randomStart));
     
     // Move to the next player
     setCurrentTeam(prev => prev === config.teamCount ? 1 : prev + 1);
@@ -291,7 +337,7 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
         isSpeedBonus: false
       }]);
       
-      setTargetLetter(validWord.slice(-1));
+      setTargetLetter(getNextTargetLetter(validWord));
       setLastScorePopup({ team: currentTeam, points: totalPoints, bonus: false });
       setTimeout(() => setLastScorePopup(null), 1500);
 
@@ -510,7 +556,7 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                      <div className="absolute top-0 left-0 w-1 h-full bg-pink-500"></div>
                      <h2 className={`text-xl font-orbitron font-bold ${textMain} mb-6 flex items-center`}><Clock className="mr-3 text-pink-400"/> Chrono Parameters</h2>
                      
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                        <div>
                          <label className={`block text-sm font-bold ${textMuted} uppercase tracking-wider mb-3`}>Global Match Time</label>
                          <div className="flex flex-wrap gap-2">
@@ -529,6 +575,20 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                              <button key={time} onClick={() => setConfig(prev => ({...prev, turnTime: time}))}
                                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all border ${config.turnTime === time ? 'bg-pink-500/20 border-pink-400 text-pink-600 dark:text-pink-300' : (isLight ? 'bg-white border-slate-300 text-slate-600 hover:border-pink-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500')}`}
                              >{time} Sec</button>
+                           ))}
+                         </div>
+                       </div>
+
+                       <div>
+                         <label className={`block text-sm font-bold ${textMuted} uppercase tracking-wider mb-3`}>Target Wins</label>
+                         <div className="flex flex-wrap gap-2">
+                           {[1, 3, 5, 10].map(wins => (
+                             <button key={wins} onClick={() => setConfig(prev => ({...prev, targetWins: wins}))}
+                               className={`px-4 py-2 rounded-lg font-bold text-sm transition-all border flex items-center gap-2 ${config.targetWins === wins ? 'bg-purple-500/20 border-purple-400 text-purple-600 dark:text-purple-300' : (isLight ? 'bg-white border-slate-300 text-slate-600 hover:border-purple-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500')}`}
+                             >
+                               <Trophy size={14} className={config.targetWins === wins ? 'text-purple-500' : 'opacity-50'} />
+                               {wins}
+                             </button>
                            ))}
                          </div>
                        </div>
@@ -610,6 +670,11 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                        <span className="truncate">{config.teamNames[0]}</span>
                      </span>
                      <span className={`text-4xl sm:text-6xl lg:text-[5rem] font-orbitron font-black ${textMain} drop-shadow-2xl leading-none`}>{scores.t1}</span>
+                     <div className="flex gap-1 mt-3">
+                       {Array.from({length: config.targetWins}).map((_, i) => (
+                         <Trophy key={i} size={14} className={i < teamWins.t1 ? tColors[1].text : 'text-slate-500 opacity-30'} />
+                       ))}
+                     </div>
                      {lastScorePopup?.team === 1 && (
                        <div className={`absolute -right-2 top-0 ${lastScorePopup.points < 0 ? 'text-red-500' : tColors[1].text} font-bold text-xl sm:text-2xl animate-float-up pointer-events-none drop-shadow-md whitespace-nowrap`}>
                          {lastScorePopup.points > 0 ? '+' : ''}{lastScorePopup.points}
@@ -628,6 +693,11 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                          <span className="truncate">{config.teamNames[2]}</span>
                        </span>
                        <span className={`text-4xl sm:text-6xl lg:text-[5rem] font-orbitron font-black ${textMain} drop-shadow-2xl leading-none`}>{scores.t3}</span>
+                       <div className="flex gap-1 mt-3">
+                         {Array.from({length: config.targetWins}).map((_, i) => (
+                           <Trophy key={i} size={14} className={i < teamWins.t3 ? tColors[3].text : 'text-slate-500 opacity-30'} />
+                         ))}
+                       </div>
                        {lastScorePopup?.team === 3 && (
                          <div className={`absolute -right-2 top-0 ${lastScorePopup.points < 0 ? 'text-red-500' : tColors[3].text} font-bold text-xl sm:text-2xl animate-float-up pointer-events-none drop-shadow-md whitespace-nowrap`}>
                            {lastScorePopup.points > 0 ? '+' : ''}{lastScorePopup.points}
@@ -658,6 +728,11 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                          <span className="truncate">{config.teamNames[3]}</span>
                        </span>
                        <span className={`text-4xl sm:text-6xl lg:text-[5rem] font-orbitron font-black ${textMain} drop-shadow-2xl leading-none`}>{scores.t4}</span>
+                       <div className="flex gap-1 mt-3">
+                         {Array.from({length: config.targetWins}).map((_, i) => (
+                           <Trophy key={i} size={14} className={i < teamWins.t4 ? tColors[4].text : 'text-slate-500 opacity-30'} />
+                         ))}
+                       </div>
                        {lastScorePopup?.team === 4 && (
                          <div className={`absolute -left-2 top-0 ${lastScorePopup.points < 0 ? 'text-red-500' : tColors[4].text} font-bold text-xl sm:text-2xl animate-float-up pointer-events-none drop-shadow-md whitespace-nowrap`}>
                            {lastScorePopup.points > 0 ? '+' : ''}{lastScorePopup.points}
@@ -676,6 +751,11 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                        <User size={16} className="ml-2 shrink-0"/>
                      </span>
                      <span className={`text-4xl sm:text-6xl lg:text-[5rem] font-orbitron font-black ${textMain} drop-shadow-2xl leading-none`}>{scores.t2}</span>
+                     <div className="flex gap-1 mt-3">
+                       {Array.from({length: config.targetWins}).map((_, i) => (
+                         <Trophy key={i} size={14} className={i < teamWins.t2 ? tColors[2].text : 'text-slate-500 opacity-30'} />
+                       ))}
+                     </div>
                      {lastScorePopup?.team === 2 && (
                        <div className={`absolute -left-2 top-0 ${lastScorePopup.points < 0 ? 'text-red-500' : tColors[2].text} font-bold text-xl sm:text-2xl animate-float-up pointer-events-none drop-shadow-md whitespace-nowrap`}>
                          {lastScorePopup.points > 0 ? '+' : ''}{lastScorePopup.points}
@@ -765,11 +845,32 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                             )}
 
                             <span className={`font-orbitron text-xl sm:text-3xl font-black uppercase tracking-wider ${textMain} mt-1`}>
-                              {item.text.slice(0, -1)}
-                              <span className={`${isLast ? (isLight ? 'text-amber-500' : 'text-yellow-400') + ' drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] relative' : 'opacity-80'}`}>
-                                {item.text.slice(-1)}
-                                {isLast && <span className={`absolute -bottom-2 left-0 w-full h-[2px] ${isLight ? 'bg-amber-500 shadow-[0_0_5px_#f59e0b]' : 'bg-yellow-400 shadow-[0_0_5px_#facc15]'} animate-pulse`}></span>}
-                              </span>
+                              {(() => {
+                                if (item.text.length < 2) return item.text;
+                                const isX = item.text.slice(-1) === 'x';
+                                if (!isX) {
+                                  return (
+                                    <>
+                                      {item.text.slice(0, -1)}
+                                      <span className={`${isLast ? (isLight ? 'text-amber-500' : 'text-yellow-400') + ' drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] relative' : 'opacity-80'}`}>
+                                        {item.text.slice(-1)}
+                                        {isLast && <span className={`absolute -bottom-2 left-0 w-full h-[2px] ${isLight ? 'bg-amber-500 shadow-[0_0_5px_#f59e0b]' : 'bg-yellow-400 shadow-[0_0_5px_#facc15]'} animate-pulse`}></span>}
+                                      </span>
+                                    </>
+                                  );
+                                } else {
+                                  return (
+                                    <>
+                                      {item.text.slice(0, -2)}
+                                      <span className={`${isLast ? (isLight ? 'text-amber-500' : 'text-yellow-400') + ' drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] relative' : 'opacity-80'}`}>
+                                        {item.text.slice(-2, -1)}
+                                        {isLast && <span className={`absolute -bottom-2 left-0 w-full h-[2px] ${isLight ? 'bg-amber-500 shadow-[0_0_5px_#f59e0b]' : 'bg-yellow-400 shadow-[0_0_5px_#facc15]'} animate-pulse`}></span>}
+                                      </span>
+                                      <span>x</span>
+                                    </>
+                                  );
+                                }
+                              })()}
                             </span>
                           </div>
                         </div>
@@ -898,6 +999,9 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
           const isTie = winnerIds.length > 1;
           const wId = winnerIds[0];
           const wColor = tColors[wId];
+          
+          // Check for grand champion
+          const hasGrandChampion = Object.values(teamWins).some(wins => wins >= config.targetWins);
 
           return (
             <div className={`absolute inset-0 z-50 ${isLight ? 'bg-slate-50/95' : 'bg-[#050816]/95'} backdrop-blur-2xl overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-700`}>
@@ -909,7 +1013,9 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                </div>
 
                <div className="relative z-10 w-full max-w-4xl flex flex-col items-center mt-8 sm:mt-12">
-                 <h2 className={`text-xl sm:text-2xl font-bold tracking-[0.5em] ${textMuted} uppercase mb-4`}>Match Terminated</h2>
+                 <h2 className={`text-xl sm:text-2xl font-bold tracking-[0.5em] ${hasGrandChampion ? 'text-purple-400' : textMuted} uppercase mb-4`}>
+                   {hasGrandChampion ? "Grand Champion Crowned" : "Match Terminated"}
+                 </h2>
                  
                  {error && (
                    <p className="text-red-500 dark:text-red-400 font-bold mb-8 text-sm sm:text-lg bg-red-100 dark:bg-red-500/10 px-6 py-2 rounded-full border border-red-300 dark:border-red-500/30 backdrop-blur-md flex items-center gap-2">
@@ -945,7 +1051,14 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                      return (
                        <div key={tId} className={`p-4 sm:p-6 rounded-2xl relative overflow-hidden border ${isW ? `${tData.border} ${isLight ? 'bg-slate-50' : 'bg-slate-900'}` : (isLight ? 'bg-white border-slate-200' : 'bg-slate-900/50 border-white/5')} backdrop-blur-sm flex flex-col items-center sm:items-start transition-colors`}>
                          <p className={`${isLight ? tData.text.replace('400', '600') : tData.text} text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1 sm:mb-2`}>{config.teamNames[idx]}</p>
-                         <p className={`text-3xl sm:text-4xl font-orbitron font-black ${textMain}`}>{scores[`t${tId}`]}</p>
+                         <div className="flex items-end gap-4">
+                           <p className={`text-3xl sm:text-4xl font-orbitron font-black ${textMain}`}>{scores[`t${tId}`]}</p>
+                           <div className="flex gap-1 mb-2">
+                             {Array.from({length: config.targetWins}).map((_, i) => (
+                               <Trophy key={i} size={14} className={i < teamWins[`t${tId}`] ? tData.text : 'text-slate-500 opacity-30'} />
+                             ))}
+                           </div>
+                         </div>
                        </div>
                      )
                    })}
@@ -971,12 +1084,14 @@ export function NeonChain({ onViewChange }: { onViewChange: (view: ViewState) =>
                    >
                      <Settings size={20} className="mr-2" /> Lobby
                    </button>
-                   <button 
-                     onClick={continueGame}
-                     className={`px-8 py-4 ${isLight ? 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-lg shadow-cyan-500/30' : 'bg-cyan-500 text-white hover:bg-cyan-400 shadow-[0_0_30px_-5px_rgba(34,211,238,0.5)]'} font-orbitron font-black rounded-2xl transition-all hover:scale-105 active:scale-95 text-sm sm:text-lg flex items-center justify-center`}
-                   >
-                     <Play size={24} className="mr-3" /> CONTINUE CHAIN
-                   </button>
+                   {!hasGrandChampion && (
+                     <button 
+                       onClick={continueGame}
+                       className={`px-8 py-4 ${isLight ? 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-lg shadow-cyan-500/30' : 'bg-cyan-500 text-white hover:bg-cyan-400 shadow-[0_0_30px_-5px_rgba(34,211,238,0.5)]'} font-orbitron font-black rounded-2xl transition-all hover:scale-105 active:scale-95 text-sm sm:text-lg flex items-center justify-center`}
+                     >
+                       <Play size={24} className="mr-3" /> CONTINUE CHAIN
+                     </button>
+                   )}
                    <button 
                      onClick={startGame}
                      className={`px-8 sm:px-12 py-4 ${isLight ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl' : 'bg-white text-[#050816] hover:bg-slate-200 shadow-[0_0_30px_-5px_rgba(255,255,255,0.4)]'} font-orbitron font-black rounded-2xl transition-all hover:scale-105 active:scale-95 text-sm sm:text-lg flex items-center justify-center`}

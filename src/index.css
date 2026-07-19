@@ -11,6 +11,20 @@
   --color-brand-yellow: #FFC857;
   --color-brand-orange: #FF8C42;
   --color-brand-bg: #F8FAFC;
+
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-float-up: floatUp 10s linear infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+  }
 }
 
 body {
