@@ -207,11 +207,7 @@ export function BubbleSentencePro({ onViewChange, initialGame }: { onViewChange:
                   <button onClick={() => onViewChange('games')} className="px-8 py-4 rounded-full bg-white/20 backdrop-blur-md shadow-lg hover:bg-white/30 text-xl font-bold text-white border border-white/40 cursor-pointer transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
                     <ArrowLeft size={24} /> Back to Games
                   </button>
-                  {initialGame && (
-                    <button onClick={() => setScreen('editor')} className="px-8 py-4 rounded-full bg-blue-600/80 backdrop-blur-md shadow-lg shadow-blue-600/30 hover:bg-blue-500 text-xl font-bold text-white border border-blue-400/50 cursor-pointer transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
-                      <Edit3 size={20} /> Edit Game
-                    </button>
-                  )}
+
                 </div>
             </div>
         </div>

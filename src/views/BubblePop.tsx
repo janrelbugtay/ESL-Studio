@@ -927,11 +927,7 @@ export function BubblePop({ onViewChange, initialGame }: { onViewChange: (view: 
             </div>
             <div className="flex gap-4 mt-12">
               <button onClick={() => onViewChange('games')} className="px-8 py-3 rounded-full glass-panel hover:bg-white/20 text-xl font-bold text-slate-800 dark:text-white cursor-pointer">Back to Games</button>
-              {initialGame && (
-                <button onClick={() => setScreen('editor')} className="px-8 py-3 rounded-full glass-panel border border-blue-500/50 hover:bg-blue-500/20 text-xl font-bold text-blue-300 cursor-pointer">
-                  <Edit3 size={18} className="inline mr-2" /> Edit Game
-                </button>
-              )}
+
             </div>
         </div>
       )}
