@@ -129,7 +129,7 @@
         }
         .btn-premium.green:active { box-shadow: 0 0 0 #16a34a; transform: translateY(10px); }
 
-        .bubble-word {
+        .bubble-word { transform-origin: top left; pointer-events: auto;
             position: absolute;
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(200, 230, 255, 0.85) 60%, rgba(100, 180, 255, 0.9) 100%);
             border: 2px solid rgba(255,255,255,0.9);
@@ -170,7 +170,7 @@
             /* Squishy stretch on drag applied via JS transform */
         }
 
-        .bubble-word.snapped {
+        .bubble-word.snapped { transform-origin: center; 
             position: relative; transform: none !important;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             pointer-events: none;
@@ -391,7 +391,7 @@
         </div>
 
         <!-- Physics Area -->
-        <div id="physics-area" class="absolute top-24 left-0 w-full h-[60vh] z-10 overflow-visible"></div>
+        <div id="physics-area" class="absolute top-24 left-0 w-full bottom-[220px] z-10 overflow-visible pointer-events-none"></div>
     </div>
 
     <div id="screen-win" class="screen bg-black/60 backdrop-blur-md justify-center items-center z-40">
@@ -1162,7 +1162,7 @@
                 });
             },
             createBubbles() {
-                const area = document.getElementById('physics-area');
+                this.bubbles = []; const area = document.getElementById('physics-area');
                 area.innerHTML = '';
                 const shuffled = [...this.words].sort(()=>Math.random()-0.5);
                 const aRect = area.getBoundingClientRect();
