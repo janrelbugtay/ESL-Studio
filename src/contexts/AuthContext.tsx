@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, signInAnonymously, linkWithPopup, linkWithRedirect, GoogleAuthProvider, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
 
@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   authError: string | null;
   signInWithGoogle: () => Promise<void>;
+  linkWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -26,18 +27,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-      
-      if (currentUser) {
+      if (!currentUser) {
+        // Sign in anonymously if no user is signed in
+        try {
+          await signInAnonymously(auth);
+        } catch (error) {
+          console.error("Anonymous auth failed", error);
+        }
+      } else {
+        setUser(currentUser);
+        setLoading(false);
         setAuthError(null);
         // Update last login
         const userRef = doc(db, 'users', currentUser.uid);
         await setDoc(userRef, {
           uid: currentUser.uid,
-          email: currentUser.email,
-          displayName: currentUser.displayName,
-          photoURL: currentUser.photoURL,
+          email: currentUser.email || 'Guest',
+          displayName: currentUser.displayName || 'Guest User',
+          photoURL: currentUser.photoURL || null,
+          isAnonymous: currentUser.isAnonymous,
           lastLoginAt: serverTimestamp(),
         }, { merge: true });
       }
@@ -46,7 +54,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
+  const linkWithGoogle = async () => {
+    if (!user || !user.isAnonymous) return;
+    setAuthError(null);
+    try {
+      await linkWithPopup(user, googleProvider);
+    } catch (error: any) {
+      console.error('Error linking with Google', error);
+      
+      if (error.code === 'auth/credential-already-in-use') {
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        if (credential) {
+          try {
+            await signInWithPopup(auth, googleProvider);
+            return;
+          } catch(e) {
+             console.error("sign in with popup after link error", e);
+          }
+        }
+      }
+      
+      let errorMessage = `Link failed: ${error.message}`;
+      setAuthError(errorMessage);
+    }
+  };
+
   const signInWithGoogle = async () => {
+    if (user?.isAnonymous) {
+      return linkWithGoogle();
+    }
+
     setAuthError(null);
     try {
       await signInWithPopup(auth, googleProvider);
@@ -90,7 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, authError, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, authError, signInWithGoogle, linkWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

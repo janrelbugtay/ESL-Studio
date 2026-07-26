@@ -237,6 +237,55 @@
         }
         .map-island:hover { transform: scale(1.1) translateY(-10px); }
 
+    
+        @media (min-height: 800px) and (min-width: 1024px) {
+            .bubble-word {
+                padding: 2.5vh 4.5vh;
+                font-size: 6vh;
+                border-width: 0.4vh;
+            }
+            .word-slot {
+                height: 12vh;
+                min-width: 18vh;
+                border-width: 0.5vh;
+            }
+            #sentence-container {
+                min-height: 16vh;
+                padding: 4vh;
+                gap: 2vh;
+                border-radius: 4vh;
+            }
+            .powerups-container button {
+                padding: 2vh 3vh !important;
+                font-size: 2.5vh !important;
+                border-radius: 1.5vh !important;
+            }
+            .ui-progress-container {
+                height: 3vh !important;
+                margin-top: 3vh !important;
+                border-radius: 1.5vh !important;
+            }
+            .lesson-status-container {
+                font-size: 2.5vh !important;
+                padding: 1vh 3vh !important;
+            }
+            #timer-container {
+                width: 18vh !important;
+                height: 18vh !important;
+            }
+            #ui-timer-text {
+                font-size: 6vh !important;
+            }
+            .quit-btn {
+                padding: 1.5vh 3vh !important;
+                font-size: 2.5vh !important;
+            }
+            .team-score {
+                padding: 1vh 3vh !important;
+                font-size: 2.5vh !important;
+            }
+        }
+
     </style>
 </head>
 <body class="theme-sky" id="game-body">
@@ -327,31 +376,57 @@
     
     <!-- Lobby / Setup Screen -->
     <div id="screen-setup" class="screen bg-black/60 backdrop-blur-md justify-center items-center z-40 p-4">
-        <div class="glass bg-white p-8 rounded-[40px] shadow-2xl w-full max-w-2xl relative text-center border-4 border-gray-200">
-            <button onclick="Game.showScreen('screen-menu')" class="absolute top-6 right-6 text-3xl hover:scale-110 transition-transform">❌</button>
-            <h2 class="text-5xl font-black text-gray-800 mb-4 drop-shadow-sm">Game Setup Lobby</h2>
-<div class="mb-8 font-bold text-gray-500 text-lg flex justify-center gap-4">
-    <div class="bg-gray-100 rounded-full px-4 py-1">Best Score: <span id="lobby-best-score" class="text-blue-600">0</span></div>
-    <div class="bg-yellow-100 rounded-full px-4 py-1 text-yellow-700">Stars: <span id="lobby-stars">0</span></div>
-</div>
+        <div class="glass bg-white p-6 md:p-8 rounded-[40px] shadow-2xl w-full max-w-2xl relative text-center border-4 border-gray-200 flex flex-col max-h-[90vh]">
+            <button onclick="Game.showScreen('screen-menu')" class="absolute top-4 right-4 md:top-6 md:right-6 text-3xl hover:scale-110 transition-transform z-10">❌</button>
+            <h2 class="text-4xl md:text-5xl font-black text-gray-800 mb-2 md:mb-4 drop-shadow-sm shrink-0">Game Setup Lobby</h2>
             
-            <div class="flex flex-col md:flex-row gap-6 mb-8 justify-center">
-                <!-- 1 Player -->
-                <button onclick="Game.selectMode(false)" id="btn-mode-1" class="flex-1 p-8 rounded-3xl border-4 transition-all hover:scale-105 btn-premium">
-                    <div class="text-6xl mb-4">👤</div>
-                    <div class="text-2xl font-black text-gray-800">1 Player</div>
-                    <div class="text-sm font-bold text-gray-500 mt-2">Solo practice</div>
-                </button>
-                
-                <!-- Classroom -->
-                <button onclick="Game.selectMode(true)" id="btn-mode-2" class="flex-1 p-8 rounded-3xl border-4 transition-all hover:scale-105 btn-premium">
-                    <div class="text-6xl mb-4">👥</div>
-                    <div class="text-2xl font-black text-gray-800">Classroom</div>
-                    <div class="text-sm font-bold text-gray-500 mt-2">Team competition</div>
-                </button>
+            <div class="mb-4 md:mb-6 font-bold text-gray-500 text-sm md:text-lg flex justify-center gap-4 shrink-0">
+                <div class="bg-gray-100 rounded-full px-4 py-1">Best Score: <span id="lobby-best-score" class="text-blue-600">0</span></div>
+                <div class="bg-yellow-100 rounded-full px-4 py-1 text-yellow-700">Stars: <span id="lobby-stars">0</span></div>
             </div>
             
-            <button onclick="Game.startGameFromLobby()" class="btn-premium green w-full py-4 text-2xl font-black shadow-lg">🚀 START GAME</button>
+            <div class="overflow-y-auto custom-scrollbar px-2 pb-4 flex-1">
+
+                
+                <!-- Players Panel -->
+                <div id="lobby-teams-panel" class="bg-blue-50 rounded-3xl p-4 md:p-6 border-2 border-blue-200 mb-6 text-left shadow-inner">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-bold text-lg md:text-xl text-blue-800 flex items-center gap-2"><span>👤</span> Number of players: <span id="lobby-team-count">1</span></span>
+                        <button onclick="window.addTeam()" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-xl font-bold shadow-md transition-transform hover:scale-105 active:scale-95 text-sm md:text-base border-b-4 border-blue-700 active:border-b-0 active:translate-y-1">➕ Add Player</button>
+                    </div>
+                    <div id="lobby-teams-list" class="flex flex-wrap gap-2 md:gap-3">
+                        <!-- teams rendered here -->
+                    </div>
+                    <div class="mt-4 text-sm font-bold text-blue-500/70 text-center italic">
+                        Tip: Click a player name to edit it!
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="bg-gray-50 rounded-3xl p-4 md:p-6 border-2 border-gray-200 mb-6 flex flex-col gap-4 text-left shadow-inner">
+                    <div class="flex justify-between items-center bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <span class="font-bold text-lg md:text-xl text-gray-700 flex items-center gap-2"><span>🎵</span> Sound Effects</span>
+                        <button id="sound-toggle-btn" onclick="window.toggleSound()" class="text-2xl md:text-3xl bg-gray-100 rounded-full shadow-inner border border-gray-200 hover:bg-gray-200 transition-colors w-14 h-14 flex items-center justify-center">🔊</button>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2 bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <span class="font-bold text-lg md:text-xl text-gray-700 flex items-center gap-2"><span>⏱️</span> Response Time</span>
+                        <div class="relative">
+                            <select id="lobby-timer-select" class="p-3 rounded-xl border-2 border-gray-200 font-bold text-gray-700 text-lg focus:border-blue-500 outline-none w-full bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer appearance-none shadow-inner" style="text-align-last: center;">
+                                <option value="default">Category Default</option>
+                                <option value="30">30 Seconds</option>
+                                <option value="60">1 Minute</option>
+                                <option value="120">2 Minutes</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700">
+                                <svg class="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="Game.startGameFromLobby()" class="btn-premium green w-full py-4 text-2xl font-black shadow-lg shrink-0 mt-4 z-10 relative">🚀 START GAME</button>
         </div>
     </div>
 
@@ -361,9 +436,14 @@
 
         <!-- Top Bar -->
         <div class="absolute top-0 left-0 w-full p-4 z-30 pointer-events-none">
+            <!-- Right Controls (Lesson Status) -->
+            <div class="absolute top-4 right-4 flex flex-col gap-2 pointer-events-auto">
+                <div class="bg-blue-900/40 backdrop-blur-md text-white font-black text-xl px-6 py-2 rounded-full shadow-lg border border-white/30 tracking-wide lesson-status-container" id="ui-lesson-status">1 / 5</div>
+            </div>
+
             <!-- Left Controls -->
             <div class="absolute top-4 left-4 flex flex-col gap-2 pointer-events-auto">
-                <button onclick="Game.quitGame()" class="btn-premium bg-gradient-to-b from-gray-200 to-gray-300 text-gray-700 border-gray-100 px-6 py-3 text-lg shadow-[0_10px_0_#9ca3af,0_15px_20px_rgba(0,0,0,0.2)] flex items-center gap-2"><span>⏸ Quit</span></button>
+                <button onclick="Game.quitGame()" class="btn-premium quit-btn bg-gradient-to-b from-gray-200 to-gray-300 text-gray-700 border-gray-100 px-6 py-3 text-lg shadow-[0_10px_0_#9ca3af,0_15px_20px_rgba(0,0,0,0.2)] flex items-center gap-2"><span>⏸ Quit</span></button>
                 
             </div>
             
@@ -385,7 +465,7 @@
         </div>
 
         <!-- Sentence Area with Illustration -->
-        <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col w-11/12 max-w-5xl z-20">
+        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col w-[95%] max-w-[95%] z-20">
             <!-- Dynamic Emoji Illustration -->
             
 
@@ -393,24 +473,18 @@
                 <div class="glass bg-white/40 rounded-[40px] p-8 min-h-[140px] flex flex-wrap gap-4 items-center justify-center shadow-2xl grow" id="sentence-container">
                     <!-- Slots -->
                 </div>
-                <div class="flex flex-col gap-2 shrink-0 pointer-events-auto z-30">
+                <div class="flex flex-col gap-2 shrink-0 pointer-events-auto z-30 powerups-container">
                     <button onclick="Game.usePowerup('solve')" class="btn-premium bg-gradient-to-b from-yellow-300 to-yellow-500 text-yellow-900 border-yellow-200 px-4 py-3 text-lg shadow-[0_10px_0_#ca8a04,0_15px_20px_rgba(0,0,0,0.2)] flex flex-col items-center leading-none">💡 Hint</button>
                     <button id="btn-freeze" onclick="Game.usePowerup('freeze')" class="btn-premium bg-gradient-to-b from-blue-400 to-blue-600 text-white border-blue-300 px-4 py-3 text-lg shadow-[0_10px_0_#2563eb,0_15px_20px_rgba(0,0,0,0.2)] flex flex-col items-center leading-none">❄️ Freeze</button>
                     <button onclick="Game.usePowerup('show')" class="btn-premium bg-gradient-to-b from-purple-400 to-purple-600 text-white border-purple-300 px-4 py-3 text-lg shadow-[0_10px_0_#9333ea,0_15px_20px_rgba(0,0,0,0.2)] flex flex-col items-center leading-none">👁️ Show</button>
                 </div>
             </div>
             
-            <!-- Progress Bar -->
-            <div class="w-full max-w-2xl mx-auto bg-black/20 rounded-full h-4 mt-6 overflow-hidden border-2 border-white/50 shadow-inner">
-                <div id="ui-progress" class="bg-gradient-to-r from-green-400 via-green-300 to-green-500 h-full rounded-full w-0 transition-all duration-500 relative">
-                    <div class="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAgMjBMMjAgMEgwaC0yMEwyMCAyMHoiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4yKSIvPjwvc3ZnPg==')] opacity-50"></div>
-                </div>
-            </div>
-            <div class="text-center mt-4 mb-2 flex justify-center"><div class="bg-blue-900/40 backdrop-blur-md text-white font-black text-xl px-6 py-2 rounded-full shadow-lg border border-white/30 tracking-wide" id="ui-lesson-status">1 / 5</div></div>
+
         </div>
 
         <!-- Physics Area -->
-        <div id="physics-area" class="absolute top-24 left-0 w-full bottom-[220px] z-10 overflow-visible pointer-events-none"></div>
+        <div id="physics-area" class="absolute top-24 left-0 w-full z-10 overflow-visible pointer-events-none" style="bottom: 320px;"></div>
     </div>
 
     <div id="screen-win" class="screen bg-black/60 backdrop-blur-md justify-center items-center z-40">
@@ -1061,29 +1135,14 @@
                 const prog = Storage.data.progress[catId] || { stars: 0, bestScore: 0 };
                 document.getElementById('lobby-best-score').innerText = prog.bestScore || 0;
                 document.getElementById('lobby-stars').innerText = prog.stars || 0;
-                this.selectMode(this.classroomMode); // Select current mode
+                if(typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
                 this.showScreen('screen-setup');
             },
             selectMode(isClassroom) {
-                this.classroomMode = isClassroom;
-                
-                document.getElementById('btn-mode-1').classList.toggle('border-blue-500', !isClassroom);
-                document.getElementById('btn-mode-1').classList.toggle('border-gray-200', isClassroom);
-                
-                document.getElementById('btn-mode-2').classList.toggle('border-blue-500', isClassroom);
-                document.getElementById('btn-mode-2').classList.toggle('border-gray-200', !isClassroom);
-                
-                const teamPanel = document.getElementById('lobby-teams-panel');
-                if (teamPanel) {
-                    if (isClassroom) {
-                        teamPanel.classList.remove('hidden');
-                        if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
-                    } else {
-                        teamPanel.classList.add('hidden');
-                    }
-                }
+                // Disabled.
             },
             startGameFromLobby() {
+                this.classroomMode = window.teamsData && window.teamsData.length > 1;
                 if (this.selectedCatId) {
                     this.start(this.selectedCatId);
                 }
@@ -1132,7 +1191,7 @@
                 
                 
                 document.getElementById('ui-lesson-status').innerText = `${this.idx + 1} / ${this.sents.length}`;
-                document.getElementById('ui-progress').style.width = `${(this.idx/this.sents.length)*100}%`;
+                if(document.getElementById('ui-progress')) document.getElementById('ui-progress').style.width = `${(this.idx/this.sents.length)*100}%`;
                 this.updateScore();
                 
                 this.renderSlots(); this.createBubbles();
@@ -1169,6 +1228,7 @@
                 this.timeLeft = seconds;
                 
                 this.timerInterval = setInterval(() => {
+                    if (this.isFrozen) return;
                     this.timeLeft--;
                     text.innerText = this.timeLeft;
                     
@@ -1884,8 +1944,7 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
 
     <script>
         window.teamsData = [
-            { id: 1, name: "Team 1", score: 0, color: "blue" },
-            { id: 2, name: "Team 2", score: 0, color: "red" }
+            { id: 1, name: "Player 1", score: 0, color: "blue" }
         ];
         window.isSoundMuted = false;
         
@@ -1900,14 +1959,14 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
             }
         };
         
-        function addTeam() {
+        window.addTeam = function() {
             const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'pink'];
             const id = window.teamsData.length + 1;
-            window.teamsData.push({ id, name: "Team " + id, score: 0, color: colors[(id-1) % colors.length] });
+            window.teamsData.push({ id, name: "Player " + id, score: 0, color: colors[(id-1) % colors.length] });
             renderTeams();
         }
         
-        function renameTeam(id) {
+        window.renameTeam = function(id) {
             const team = window.teamsData.find(t => t.id === id);
             if (!team) return;
             const modal = document.getElementById('modal-rename-team');
@@ -1924,6 +1983,7 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
                 if (newName && newName.trim()) {
                     team.name = newName.trim();
                     renderTeams();
+                    if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
                 }
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
@@ -1975,7 +2035,7 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
                 const c = colorMap[t.color] || colorMap.blue;
                 
                 html += `
-                    <button onclick="window.renameTeam(${t.id}); window.renderLobbyTeams();" class="px-4 py-2 rounded-xl font-bold border-b-4 transition-transform hover:translate-y-1 active:translate-y-2 active:border-b-0 ${c.bg} ${c.border} shadow-sm">
+                    <button onclick="window.renameTeam(${t.id});" class="px-4 py-2 rounded-xl font-bold border-b-4 transition-transform hover:translate-y-1 active:translate-y-2 active:border-b-0 ${c.bg} ${c.border} shadow-sm">
                         ${t.name} ✏️
                     </button>
                 `;
@@ -2004,7 +2064,7 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
                         <button 
                             onclick="updateTeamScore(${t.id}, 1)" 
                             oncontextmenu="event.preventDefault(); updateTeamScore(${t.id}, -1)" 
-                            class="glass ${c.bg} text-white px-4 py-2 rounded-full font-black text-xl shadow-lg ${c.border} cursor-pointer transform hover:scale-105 transition-transform flex items-center gap-2">
+                            class="team-score glass ${c.bg} text-white px-4 py-2 rounded-full font-black text-xl shadow-lg ${c.border} cursor-pointer transform hover:scale-105 transition-transform flex items-center gap-2">
                             <span>${t.name}</span>: <span id="score-team${t.id}">${t.score}</span>
                         </button>
                     </div>
@@ -2028,8 +2088,8 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
     <!-- Custom Prompt Modal for Renaming Teams -->
     <div id="modal-rename-team" class="fixed inset-0 bg-gray-900/80 z-[100] hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform scale-100 flex flex-col gap-6 border-8 border-gray-100">
-            <h2 class="text-3xl font-black text-gray-800 text-center">Rename Team</h2>
-            <input type="text" id="rename-team-input" class="w-full px-6 py-4 text-2xl font-bold rounded-2xl border-4 border-gray-200 focus:border-blue-500 focus:outline-none text-center" placeholder="Team Name">
+            <h2 class="text-3xl font-black text-gray-800 text-center">Rename Player</h2>
+            <input type="text" id="rename-team-input" class="w-full px-6 py-4 text-2xl font-bold rounded-2xl border-4 border-gray-200 focus:border-blue-500 focus:outline-none text-center" placeholder="Player Name">
             <div class="flex gap-4 mt-4">
                 <button onclick="document.getElementById('modal-rename-team').style.display='none'; document.getElementById('modal-rename-team').classList.add('hidden');" class="flex-1 px-6 py-4 rounded-full font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 text-xl transition-colors">Cancel</button>
                 <button id="rename-team-save-btn" class="flex-1 px-6 py-4 rounded-full font-bold text-white bg-blue-500 hover:bg-blue-600 text-xl transition-colors shadow-lg shadow-blue-500/30">Save</button>

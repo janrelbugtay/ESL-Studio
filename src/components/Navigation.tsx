@@ -113,7 +113,7 @@ export function Header({
   onViewChange?: (view: ViewState) => void;
   setIsMobileMenuOpen: (open: boolean) => void;
 }) {
-  const { user, signInWithGoogle, logout, loading } = useAuth();
+  const { user, signInWithGoogle, linkWithGoogle, logout, loading } = useAuth();
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isDarkMode, setIsDarkMode] = React.useState(() => document.documentElement.classList.contains('dark'));
   
@@ -195,10 +195,21 @@ export function Header({
                       {user.displayName || "User"}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                      {user.email}
+                      {user.email || (user.isAnonymous ? "Guest Account" : "")}
                     </p>
                   </div>
                   <div className="py-2">
+                    {user.isAnonymous && (
+                      <button
+                        onClick={() => {
+                          linkWithGoogle();
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-purple transition-colors flex items-center justify-between"
+                      >
+                        Connect Google
+                      </button>
+                    )}
                     {isAdmin && (
                         <button
                           onClick={() => handleDropdownItemClick("admin-dashboard")}

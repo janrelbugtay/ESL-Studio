@@ -39,6 +39,7 @@ export function GamesLibrary({
     { id: "yoga-quiz", title: "Yoga Quiz", icon: "https://drive.google.com/thumbnail?id=16viKskpD4hXygTg-0UaGSjfrWibNoqeQ&sz=w1000", color: "bg-emerald-100 text-emerald-600" },
     { id: "family-feud", title: "Family Feud", icon: "https://drive.google.com/thumbnail?id=1DDWdERo9zS6SEbpXA7J8FSh__1CNqxZN&sz=w1000", color: "bg-yellow-100 text-yellow-600" },
     { id: "sumo", title: "Sumo Tags", icon: "https://drive.google.com/thumbnail?id=19zB6Kpor6pry7TV3XvX3eIZdxpd3ys40&sz=w1000", color: "bg-red-100 text-red-600" },
+    { id: "hamster-pop-quiz", title: "Hamster Pop Quiz", icon: "🐹", color: "bg-yellow-100 text-yellow-600" },
   ];
 
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
@@ -312,7 +313,7 @@ export function GamesLibrary({
                     <div className="flex-1 flex flex-col">
                       <div className="mb-2 flex items-center gap-2 flex-wrap text-xs font-bold z-20 relative">
                         <span className="px-2 py-1 bg-brand-purple/10 text-brand-purple rounded-md uppercase tracking-wide">
-                          {game.topic || 'No Topic'}
+                          {game.name || 'Untitled Game'}
                         </span>
                         {game.folderId && folders.find(f => f.id === game.folderId) ? (
                            <button 
@@ -331,9 +332,9 @@ export function GamesLibrary({
 
                       <div className="flex justify-between items-start mb-4">
                         <h3 className="font-black text-xl text-slate-800 dark:text-slate-200 line-clamp-2 pr-2">
-                          {game.name}
+                          {game.topic || 'No Topic'}
                         </h3>
-                        <div className="w-12 h-12 bg-white dark:bg-slate-800 shadow-sm border-2 border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center font-bold text-2xl group-hover:scale-[1.20] transition-transform shrink-0 z-20 relative overflow-hidden">
+                        <div className="w-20 h-20 bg-white dark:bg-slate-800 shadow-sm border-2 border-slate-100 dark:border-slate-700 rounded-2xl flex items-center justify-center font-bold text-5xl group-hover:scale-[1.10] transition-transform shrink-0 z-20 relative overflow-hidden">
                           {(() => { const icon = gameTemplates.find(t => t.id === game.gameType)?.icon || '🎮'; return icon.startsWith("http") || icon.startsWith("/") ? <img src={icon} referrerPolicy="no-referrer" alt="" className="w-full h-full object-cover" /> : icon; })()}
                         </div>
                       </div>

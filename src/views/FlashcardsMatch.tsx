@@ -105,6 +105,7 @@ export function FlashcardsMatch({ onViewChange }: { onViewChange: (view: ViewSta
   const [currentView, setCurrentView] = useState('lobby'); // lobby, editor, flashcards, match
   const [activities, setActivities] = useState(initialActivities);
   const [activeActivity, setActiveActivity] = useState<any>(null);
+  const [activityToDelete, setActivityToDelete] = useState<number | null>(null);
 
   const navigateTo = (view: string, activity: any = null) => {
     setActiveActivity(activity);
@@ -122,8 +123,13 @@ export function FlashcardsMatch({ onViewChange }: { onViewChange: (view: ViewSta
 
   const handleDelete = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if(window.confirm('Delete this activity?')) {
-      setActivities(activities.filter(a => a.id !== id));
+    setActivityToDelete(id);
+  }
+
+  const confirmDelete = () => {
+    if (activityToDelete !== null) {
+      setActivities(activities.filter(a => a.id !== activityToDelete));
+      setActivityToDelete(null);
     }
   }
 
@@ -168,6 +174,35 @@ export function FlashcardsMatch({ onViewChange }: { onViewChange: (view: ViewSta
         </div>
       </header>
       
+      {/* Delete Confirmation Modal */}
+      {activityToDelete !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl relative text-center">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Delete Activity?</h2>
+            <p className="text-slate-500 font-medium mb-6">
+              Are you sure you want to delete this activity?
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setActivityToDelete(null)}
+                className="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-6 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 overflow-hidden flex flex-col">
         {currentView === 'lobby' && <TeacherLobby activities={activities} navigateTo={navigateTo} onDelete={handleDelete} />}

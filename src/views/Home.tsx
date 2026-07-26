@@ -140,6 +140,20 @@ function FeaturedGamesSection({
       color: "from-indigo-600 to-red-600",
       icon: "🤼",
     },
+    {
+      id: "hamster-pop-quiz",
+      title: "Hamster Pop Quiz",
+      description: "Turn any video into a sunny ESL adventure with interactive pop quizzes!",
+      difficulty: "Medium",
+      players: "1 Player",
+      time: "10-15 mins",
+      subject: "Video Comprehension",
+      grade: "All",
+      imageUrl: "https://images.unsplash.com/photo-1425082661705-1834bfd08711?q=80&w=1000&auto=format&fit=crop",
+      isAI: true,
+      color: "from-sky-400 to-yellow-400",
+      icon: "🐹",
+    }
   ];
 
   return (

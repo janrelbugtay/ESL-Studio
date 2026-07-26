@@ -21,6 +21,7 @@ import { YogaQuiz } from "./views/YogaQuiz";
 import { BubbleSentencePro } from "./views/BubbleSentencePro";
 import { FamilyFeud } from "./views/FamilyFeud";
 import { Sumo } from "./views/Sumo";
+import { HamsterPopQuiz } from "./views/HamsterPopQuiz";
 import { useAuth } from "./contexts/AuthContext";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "./lib/firebase";
@@ -114,6 +115,8 @@ export default function App() {
         return <FamilyFeud onViewChange={handleViewChange} initialGame={selectedGame} />;
       case "sumo":
         return <Sumo onViewChange={handleViewChange} />;
+      case "hamster-pop-quiz":
+        return <HamsterPopQuiz onViewChange={handleViewChange} initialGame={selectedGame} />;
       case "dashboard":
         return <UserDashboard />;
       case "games":
