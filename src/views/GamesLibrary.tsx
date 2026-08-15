@@ -199,9 +199,11 @@ export function GamesLibrary({
     );
   }
 
-  const filteredGames = selectedFolderId 
+  const baseFilteredGames = selectedFolderId 
     ? games.filter(g => g.folderId === selectedFolderId)
     : games.filter(g => !g.folderId);
+
+  const filteredGames = baseFilteredGames.filter(g => isAdmin || publishedGames[g.gameType || "mystery-box"] !== false);
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 flex flex-col gap-8">
