@@ -30,7 +30,19 @@ export function GamesLibrary({
   const [newFolderName, setNewFolderName] = useState("");
   const [gameToMove, setGameToMove] = useState<string | null>(null);
 
-  const gameTemplates = [
+  const [publishedGames, setPublishedGames] = useState<Record<string, boolean>>({});
+  const isAdmin = Boolean(user && !user.isAnonymous && user.email?.toLowerCase().trim() === "janrelbugtay03@gmail.com");
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "settings", "general"), (doc) => {
+      if (doc.exists()) {
+        setPublishedGames(doc.data().publishedGames || {});
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  const allGameTemplates = [
     { id: "mystery-box", title: "Mystery Box", icon: "https://drive.google.com/thumbnail?id=1ugM0rhtk40XdbSDrdDJja5QpLNkWebQn&sz=w1000", color: "bg-orange-100 text-orange-600" },
     { id: "neon-chain", title: "Neon Chain", icon: "https://drive.google.com/thumbnail?id=1kovfYZSlp6X8HTqQ9OF_gSpf3wgJgNYG&sz=w1000", color: "bg-cyan-100 text-cyan-600" },
     { id: "bubble-pop", title: "Bubble Pop", icon: "https://drive.google.com/thumbnail?id=1AHwLQ7lCIsKt9fzMlWAJWMnRCfFE4mE-&sz=w1000", color: "bg-blue-100 text-blue-600" },
@@ -39,8 +51,12 @@ export function GamesLibrary({
     { id: "yoga-quiz", title: "Yoga Quiz", icon: "https://drive.google.com/thumbnail?id=16viKskpD4hXygTg-0UaGSjfrWibNoqeQ&sz=w1000", color: "bg-emerald-100 text-emerald-600" },
     { id: "family-feud", title: "Family Feud", icon: "https://drive.google.com/thumbnail?id=1DDWdERo9zS6SEbpXA7J8FSh__1CNqxZN&sz=w1000", color: "bg-yellow-100 text-yellow-600" },
     { id: "sumo", title: "Sumo Tags", icon: "https://drive.google.com/thumbnail?id=19zB6Kpor6pry7TV3XvX3eIZdxpd3ys40&sz=w1000", color: "bg-red-100 text-red-600" },
-    { id: "hamster-pop-quiz", title: "Hamster Pop Quiz", icon: "🐹", color: "bg-yellow-100 text-yellow-600" },
+    { id: "letter-lock", title: "Letter Lock", icon: "https://ui-avatars.com/api/?name=Letter+Lock&background=38bdf8&color=fff&size=512", color: "bg-sky-100 text-sky-600" },
+    { id: "hamster-pop-quiz", title: "Hamster Pop Quiz", icon: "https://images.unsplash.com/photo-1425082661705-1834bfd08711?q=80&w=1000&auto=format&fit=crop", color: "bg-yellow-100 text-yellow-600" },
+    { id: "student-race", title: "Name Picker", icon: "https://images.unsplash.com/photo-1541604193435-22287d32c2c2?q=80&w=1000&auto=format&fit=crop", color: "bg-indigo-100 text-indigo-600" },
   ];
+
+  const gameTemplates = allGameTemplates.filter(g => isAdmin || publishedGames[g.id] !== false);
 
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);

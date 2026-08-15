@@ -1383,6 +1383,16 @@
                         }
                     }
                 }
+
+                // If they dropped it anywhere else, act like a click and drop into the next available slot
+                const nextI = this.slots.findIndex(s => !s.filled);
+                if (nextI !== -1) {
+                    if (this.slots[nextI].w === wordText) {
+                        this.correct(b, this.slots[nextI]);
+                    } else {
+                        this.wrong(b, this.slots[nextI]);
+                    }
+                }
             },
 
             correct(b, slot) {
@@ -1663,65 +1673,71 @@
                     if (this.isFrozen) speedMult = 0; // stop when frozen
 
                     this.bubbles.forEach((b, i) => {
-                        if(b.snapped || this.dragB === b) return;
+                        if (b.snapped) return;
                         
-                        if (this.isFrozen) {
-                            b.vx = 0;
-                            b.vy = 0;
+                        let rot = 0;
+                        if (this.dragB === b) {
+                            // If being dragged, skip physics, but set scale
+                            b.scaleX = 1.1;
+                            b.scaleY = 1.1;
                         } else {
-                            // Gentle wandering force in any direction
-                            b.vx += (Math.random() - 0.5) * 0.1 * dt * speedMult;
-                            b.vy += (Math.random() - 0.5) * 0.1 * dt * speedMult;
-                        }
-                        
-                        // Maintain a steady, gentle speed (prevents stopping or moving too fast)
-                        let speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
-                        if (b.isError && speed > 10) {
-                            b.vx = (b.vx / speed) * 10;
-                            b.vy = (b.vy / speed) * 10;
-                        } else if (!b.isError && speed > 2.5) {
-                            b.vx = (b.vx / speed) * 2.5;
-                            b.vy = (b.vy / speed) * 2.5;
-                        } else if (speed < 0.5 && speed > 0) {
-                            b.vx = (b.vx / speed) * 0.5;
-                            b.vy = (b.vy / speed) * 0.5;
-                        }
-
-                        b.x += b.vx * dt; b.y += b.vy * dt;
-if (isNaN(b.x)) b.x = bnds.width / 2;
-if (isNaN(b.y)) b.y = bnds.height / 2;
-                        
-                        // Wobble organically
-                        b.scaleX = 1 + Math.sin(t/300 + i)*0.03;
-                        b.scaleY = 1 + Math.cos(t/300 + i)*0.03;
-                        
-                        // Bounds (Elastic bounce instead of losing momentum)
-                        const scaledW = b.w * sizeMult;
-                        const scaledH = b.h * sizeMult;
-                        const offsetX = (scaledW - b.w) / 2;
-                        const offsetY = (scaledH - b.h) / 2;
-                        
-                        if(b.x < offsetX) { b.x = offsetX; b.vx *= -1; }
-                        if(b.x + b.w + offsetX > bnds.width) { b.x = bnds.width - b.w - offsetX; b.vx *= -1; }
-                        if(b.y < offsetY) { b.y = offsetY; b.vy *= -1; }
-                        if(b.y + b.h + offsetY > bnds.height) { b.y = bnds.height - b.h - offsetY; b.vy *= -1; }
-                        
-                        // Collisions (Soft Repel)
-                        for(let j=i+1; j<this.bubbles.length; j++) {
-                            const b2 = this.bubbles[j];
-                            if(b2.snapped || this.dragB === b2) continue;
-                            const dx = (b.x+b.w/2) - (b2.x+b2.w/2);
-                            const dy = (b.y+b.h/2) - (b2.y+b2.h/2);
-                            const dist = Math.sqrt(dx*dx + dy*dy);
-                            const minDist = (b.w + b2.w)*0.45;
-                            if(dist < minDist && dist>0) {
-                                const force = (minDist - dist)*0.1;
-                                const ax = (dx/dist)*force; const ay = (dy/dist)*force;
-                                b.vx += ax; b.vy += ay; b2.vx -= ax; b2.vy -= ay;
+                            if (this.isFrozen) {
+                                b.vx = 0;
+                                b.vy = 0;
+                            } else {
+                                // Gentle wandering force in any direction
+                                b.vx += (Math.random() - 0.5) * 0.1 * dt * speedMult;
+                                b.vy += (Math.random() - 0.5) * 0.1 * dt * speedMult;
                             }
+                            
+                            // Maintain a steady, gentle speed (prevents stopping or moving too fast)
+                            let speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+                            if (b.isError && speed > 10) {
+                                b.vx = (b.vx / speed) * 10;
+                                b.vy = (b.vy / speed) * 10;
+                            } else if (!b.isError && speed > 2.5) {
+                                b.vx = (b.vx / speed) * 2.5;
+                                b.vy = (b.vy / speed) * 2.5;
+                            } else if (speed < 0.5 && speed > 0) {
+                                b.vx = (b.vx / speed) * 0.5;
+                                b.vy = (b.vy / speed) * 0.5;
+                            }
+
+                            b.x += b.vx * dt; b.y += b.vy * dt;
+                            if (isNaN(b.x)) b.x = bnds.width / 2;
+                            if (isNaN(b.y)) b.y = bnds.height / 2;
+                            
+                            // Wobble organically
+                            b.scaleX = 1 + Math.sin(t/300 + i)*0.03;
+                            b.scaleY = 1 + Math.cos(t/300 + i)*0.03;
+                            
+                            // Bounds (Elastic bounce instead of losing momentum)
+                            const scaledW = b.w * sizeMult;
+                            const scaledH = b.h * sizeMult;
+                            const offsetX = (scaledW - b.w) / 2;
+                            const offsetY = (scaledH - b.h) / 2;
+                            
+                            if(b.x < offsetX) { b.x = offsetX; b.vx *= -1; }
+                            if(b.x + b.w + offsetX > bnds.width) { b.x = bnds.width - b.w - offsetX; b.vx *= -1; }
+                            if(b.y < offsetY) { b.y = offsetY; b.vy *= -1; }
+                            if(b.y + b.h + offsetY > bnds.height) { b.y = bnds.height - b.h - offsetY; b.vy *= -1; }
+                            
+                            // Collisions (Soft Repel)
+                            for(let j=i+1; j<this.bubbles.length; j++) {
+                                const b2 = this.bubbles[j];
+                                if(b2.snapped || this.dragB === b2) continue;
+                                const dx = (b.x+b.w/2) - (b2.x+b2.w/2);
+                                const dy = (b.y+b.h/2) - (b2.y+b2.h/2);
+                                const dist = Math.sqrt(dx*dx + dy*dy);
+                                const minDist = (b.w + b2.w)*0.45;
+                                if(dist < minDist && dist>0) {
+                                    const force = (minDist - dist)*0.1;
+                                    const ax = (dx/dist)*force; const ay = (dy/dist)*force;
+                                    b.vx += ax; b.vy += ay; b2.vx -= ax; b2.vy -= ay;
+                                }
+                            }
+                            rot = b.vx * 3;
                         }
-                        
-                        const rot = b.vx * 3;
                         
                         let renderX = b.x;
                         let renderY = b.y;
@@ -1961,9 +1977,17 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
         
         window.addTeam = function() {
             const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'pink'];
-            const id = window.teamsData.length + 1;
+            const id = window.teamsData.length > 0 ? Math.max(...window.teamsData.map(t => t.id)) + 1 : 1;
             window.teamsData.push({ id, name: "Player " + id, score: 0, color: colors[(id-1) % colors.length] });
             renderTeams();
+            if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
+        }
+
+        window.removeTeam = function(id) {
+            if (window.teamsData.length <= 1) return;
+            window.teamsData = window.teamsData.filter(t => t.id !== id);
+            renderTeams();
+            if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
         }
         
         window.renameTeam = function(id) {
@@ -1981,8 +2005,17 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
             saveBtn.onclick = () => {
                 const newName = input.value;
                 if (newName && newName.trim()) {
-                    team.name = newName.trim();
-                    renderTeams();
+                    // Sanitize input
+                    const sanitized = newName.trim().replace(/[&<>'"]/g, 
+                        tag => ({
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            "'": '&#39;',
+                            '"': '&quot;'
+                        }[tag] || tag));
+                    team.name = sanitized;
+                    if (typeof renderTeams === 'function') renderTeams();
                     if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
                 }
                 modal.style.display = 'none';
@@ -2035,9 +2068,12 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
                 const c = colorMap[t.color] || colorMap.blue;
                 
                 html += `
-                    <button onclick="window.renameTeam(${t.id});" class="px-4 py-2 rounded-xl font-bold border-b-4 transition-transform hover:translate-y-1 active:translate-y-2 active:border-b-0 ${c.bg} ${c.border} shadow-sm">
-                        ${t.name} ✏️
-                    </button>
+                    <div class="inline-flex items-stretch rounded-xl font-bold border-b-4 transition-transform hover:-translate-y-1 active:translate-y-0 active:border-b-0 shadow-sm overflow-hidden ${c.bg} ${c.border}">
+                        <button onclick="window.renameTeam(${t.id});" class="px-4 py-2 hover:bg-white/20 flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
+                            ${t.name} ✏️
+                        </button>
+                        ${window.teamsData.length > 1 ? `<button onclick="window.removeTeam(${t.id});" class="px-3 py-2 border-l border-white/30 hover:bg-red-500/80 flex items-center justify-center transition-colors">✖</button>` : ''}
+                    </div>
                 `;
             });
             list.innerHTML = html;
@@ -2087,14 +2123,14 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
 
     <!-- Custom Prompt Modal for Renaming Teams -->
     <div id="modal-rename-team" class="fixed inset-0 bg-gray-900/80 z-[100] hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform scale-100 flex flex-col gap-6 border-8 border-gray-100">
+        <form id="rename-team-form" class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform scale-100 flex flex-col gap-6 border-8 border-gray-100" onsubmit="event.preventDefault(); document.getElementById('rename-team-save-btn').click();">
             <h2 class="text-3xl font-black text-gray-800 text-center">Rename Player</h2>
             <input type="text" id="rename-team-input" class="w-full px-6 py-4 text-2xl font-bold rounded-2xl border-4 border-gray-200 focus:border-blue-500 focus:outline-none text-center" placeholder="Player Name">
             <div class="flex gap-4 mt-4">
-                <button onclick="document.getElementById('modal-rename-team').style.display='none'; document.getElementById('modal-rename-team').classList.add('hidden');" class="flex-1 px-6 py-4 rounded-full font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 text-xl transition-colors">Cancel</button>
-                <button id="rename-team-save-btn" class="flex-1 px-6 py-4 rounded-full font-bold text-white bg-blue-500 hover:bg-blue-600 text-xl transition-colors shadow-lg shadow-blue-500/30">Save</button>
+                <button type="button" onclick="document.getElementById('modal-rename-team').style.display='none'; document.getElementById('modal-rename-team').classList.add('hidden');" class="flex-1 px-6 py-4 rounded-full font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 text-xl transition-colors">Cancel</button>
+                <button type="button" id="rename-team-save-btn" class="flex-1 px-6 py-4 rounded-full font-bold text-white bg-blue-500 hover:bg-blue-600 text-xl transition-colors shadow-lg shadow-blue-500/30">Save</button>
             </div>
-        </div>
+        </form>
     </div>
 
 </body>

@@ -15,7 +15,9 @@ export type ViewState =
   | "bubble-sentence-pro"
   | "family-feud"
   | "sumo"
-  | "hamster-pop-quiz";
+  | "hamster-pop-quiz"
+  | "student-race"
+  | "letter-lock";
 
 export interface Game {
   id: string;

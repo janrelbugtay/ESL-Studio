@@ -1072,7 +1072,7 @@ function QuizEditor({ quiz, onSave, onCancel, folders }: { quiz: Quiz, onSave: (
   const [errorMsg, setErrorMsg] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState<string | null>(null);
 
-  const generateImageForOption = async (qId: number, optIndex: number, promptText: string) => {
+  const generateImageForOption = async (qId: number | string, optIndex: number, promptText: string) => {
     if (!promptText.trim()) {
         setErrorMsg("Enter text in the option first to generate an emoji.");
         setTimeout(() => setErrorMsg(""), 3000);

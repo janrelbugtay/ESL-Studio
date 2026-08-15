@@ -22,6 +22,8 @@ import { BubbleSentencePro } from "./views/BubbleSentencePro";
 import { FamilyFeud } from "./views/FamilyFeud";
 import { Sumo } from "./views/Sumo";
 import { HamsterPopQuiz } from "./views/HamsterPopQuiz";
+import { StudentRace } from "./views/StudentRace";
+import { LetterLock } from "./views/LetterLock";
 import { useAuth } from "./contexts/AuthContext";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "./lib/firebase";
@@ -30,22 +32,16 @@ import { AlertTriangle } from "lucide-react";
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>("home");
   const [selectedGame, setSelectedGame] = useState<any>(null);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, loading, signInWithGoogle, authError } = useAuth();
+  const { user, loading, isAuthenticating, signInWithGoogle, authError } = useAuth();
   
-  const isAdmin = user?.email === "janrelbugtay03@gmail.com";
-
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, "settings", "general"), (doc) => {
-      if (doc.exists()) {
-        setIsMaintenanceMode(doc.data().maintenanceMode === true);
-      }
-    });
-    return () => unsub();
-  }, []);
+  const isAdmin = Boolean(user && !user.isAnonymous && user.email?.toLowerCase().trim() === "janrelbugtay03@gmail.com");
 
   const handleViewChange = (view: ViewState, data?: any) => {
+    if (view === "admin-dashboard" && !isAdmin) {
+      setCurrentView("home");
+      return;
+    }
     setCurrentView(view);
     if (data) {
       setSelectedGame(data);
@@ -79,9 +75,10 @@ export default function App() {
             
             <button
               onClick={signInWithGoogle}
-              className="w-full bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors shadow-sm"
+              disabled={isAuthenticating}
+              className="w-full bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold py-3 px-6 rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In with Google
+              {isAuthenticating ? "Signing In..." : "Sign In with Google"}
             </button>
           </div>
         </div>
@@ -94,7 +91,7 @@ export default function App() {
       case "generator":
         return <AIGenerator />;
       case "admin-dashboard":
-        return <AdminDashboard onViewChange={handleViewChange} />;
+        return isAdmin ? <AdminDashboard onViewChange={handleViewChange} /> : <Home onViewChange={handleViewChange} />;
       case "user-dashboard":
         return <UserDashboard />;
       case "media-studio":
@@ -117,6 +114,10 @@ export default function App() {
         return <Sumo onViewChange={handleViewChange} />;
       case "hamster-pop-quiz":
         return <HamsterPopQuiz onViewChange={handleViewChange} initialGame={selectedGame} />;
+      case "student-race":
+        return <StudentRace onViewChange={handleViewChange} />;
+      case "letter-lock":
+        return <LetterLock />;
       case "dashboard":
         return <UserDashboard />;
       case "games":
@@ -143,40 +144,6 @@ export default function App() {
         return <Home />;
     }
   };
-
-  if (isMaintenanceMode && loading) {
-    return (
-      <div className="flex items-center justify-center h-screen w-full bg-slate-50 dark:bg-slate-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (isMaintenanceMode && !isAdmin) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 p-6 text-center">
-        <div className="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-3xl shadow-xl max-w-lg w-full border border-slate-100 flex flex-col items-center">
-          <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-6 text-orange-500">
-            <AlertTriangle size={40} />
-          </div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4 tracking-tight">We’re Sorry!</h1>
-          <p className="text-slate-600 mb-4 leading-relaxed">
-            Our app is currently undergoing maintenance to improve your experience. We apologize for the inconvenience and appreciate your patience.
-          </p>
-          <p className="text-slate-600 font-semibold mb-8">
-            We’ll be back soon!
-          </p>
-          
-          <button 
-            onClick={signInWithGoogle}
-            className="mt-8 text-xs text-slate-400 hover:text-indigo-500 transition-colors bg-transparent border-none outline-none cursor-pointer"
-          >
-            Admin Login
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 overflow-hidden">

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactPlayer from 'react-player';
+const Player: any = ReactPlayer;
 import {
   Play, Video, Trophy, Settings, BarChart, BookOpen, Flame,
   CheckCircle, XCircle, Star, Sparkles, ChevronRight, Volume2,
@@ -146,6 +148,7 @@ export function HamsterPopQuiz({ onViewChange, initialGame }: { onViewChange: (v
   const [currentView, setCurrentView] = useState('home');
   const [questions, setQuestions] = useState<any[]>([]);
   const [lessonConfig, setLessonConfig] = useState(null);
+  const [videoUrl, setVideoUrl] = useState('');
   
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -191,7 +194,7 @@ export function HamsterPopQuiz({ onViewChange, initialGame }: { onViewChange: (v
 
       <main className="container mx-auto px-4 py-8 relative z-10">
         {currentView === 'home' && <HomeView navigateTo={navigateTo} />}
-        {currentView === 'create' && <CreateView navigateTo={navigateTo} />}
+        {currentView === 'create' && <CreateView navigateTo={navigateTo} videoUrl={videoUrl} setVideoUrl={setVideoUrl} />}
         {currentView === 'loading' && <LoadingAnalysisView navigateTo={navigateTo} />}
         {currentView === 'config' && <ConfigView onStartLesson={handleStartLesson} />}
         {currentView === 'player' && (
@@ -202,6 +205,7 @@ export function HamsterPopQuiz({ onViewChange, initialGame }: { onViewChange: (v
             xp={xp} setXp={setXp} 
             streak={streak} setStreak={setStreak}
             wordsLearned={wordsLearned} setWordsLearned={setWordsLearned}
+            videoUrl={videoUrl}
           />
         )}
       </main>
@@ -268,12 +272,11 @@ function HomeView({ navigateTo }: any) {
   );
 }
 
-function CreateView({ navigateTo }: any) {
-  const [url, setUrl] = useState('');
+function CreateView({ navigateTo, videoUrl, setVideoUrl }: any) {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    if (url) navigateTo('loading');
+    if (videoUrl) navigateTo('loading');
   };
 
   return (
@@ -289,8 +292,8 @@ function CreateView({ navigateTo }: any) {
             type="text" 
             placeholder="e.g., https://youtube.com/watch?v=..." 
             className="w-full text-lg p-5 rounded-2xl sunny-input font-medium text-slate-700"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
             required
           />
           <button 
@@ -485,7 +488,7 @@ function ConfigView({ onStartLesson }: any) {
   );
 }
 
-function PlayerView({ config, questions, setQuestions, xp, setXp, streak, setStreak, wordsLearned, setWordsLearned }: any) {
+function PlayerView({ config, questions, setQuestions, xp, setXp, streak, setStreak, wordsLearned, setWordsLearned, videoUrl }: any) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0); 
   const [activeQuiz, setActiveQuiz] = useState<any>(null);
@@ -495,38 +498,30 @@ function PlayerView({ config, questions, setQuestions, xp, setXp, streak, setStr
   const [showEditModal, setShowEditModal] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<any>(null);
   const [videoDuration, setVideoDuration] = useState(120);
+  const [currentTime, setCurrentTime] = useState(0);
 
-  useEffect(() => {
-    if (videoRef.current) {
-      if (isPlaying && !activeQuiz) {
-        videoRef.current.play().catch(e => console.log("Autoplay prevented:", e));
-      } else {
-        videoRef.current.pause();
-      }
-    }
-  }, [isPlaying, activeQuiz]);
+  // Playback is controlled by the playing prop in ReactPlayer
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      const currentSeconds = videoRef.current.currentTime;
-      const duration = videoRef.current.duration || 120; 
-      setVideoDuration(duration);
-      
-      const currentProgress = (currentSeconds / duration) * 100;
-      setProgress(currentProgress);
+  const handleTimeUpdate = (state: any) => {
+    const currentSeconds = state.playedSeconds;
+    setCurrentTime(currentSeconds);
+    const duration = videoDuration || 120;
+    
+    const currentProgress = (currentSeconds / duration) * 100;
+    setProgress(currentProgress);
 
-      const triggeredQuiz = questions.find((q: any) => 
-        !quizHistory.includes(q.id) && 
-        Math.abs(q.timeTrigger - currentSeconds) < 0.5 
-      );
+    const triggeredQuiz = questions.find((q: any) => 
+      !quizHistory.includes(q.id) && 
+      Math.abs(q.timeTrigger - currentSeconds) < 0.5 
+    );
 
-      if (triggeredQuiz && isPlaying && !activeQuiz) {
-        setIsPlaying(false); 
-        setActiveQuiz(triggeredQuiz);
-        videoRef.current.currentTime = triggeredQuiz.timeTrigger;
-        videoRef.current.pause();
+    if (triggeredQuiz && isPlaying && !activeQuiz) {
+      setIsPlaying(false); 
+      setActiveQuiz(triggeredQuiz);
+      if (videoRef.current && typeof videoRef.current.seekTo === 'function') {
+        videoRef.current.seekTo(triggeredQuiz.timeTrigger, 'seconds');
       }
     }
   };
@@ -571,16 +566,20 @@ function PlayerView({ config, questions, setQuestions, xp, setXp, streak, setStr
       <div className="flex-grow flex flex-col relative rounded-[2.5rem] overflow-hidden bg-white shadow-2xl border-4 border-white">
         
         <div className="relative flex-grow bg-slate-900 flex items-center justify-center overflow-hidden min-h-[500px]">
-          <video 
-            ref={videoRef}
-            className={`w-full h-full object-cover transition-all duration-700 ${activeQuiz ? 'opacity-30 filter blur-md scale-105' : 'opacity-100 scale-100'}`}
-            onTimeUpdate={handleTimeUpdate}
-            onEnded={() => setIsPlaying(false)}
-            playsInline
-          >
-            <source src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4" type="video/mp4" />
-            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
-          </video>
+          <div className={`absolute inset-0 w-full h-full transition-all duration-700 ${activeQuiz ? 'opacity-30 filter blur-md scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
+            <Player 
+              ref={videoRef}
+              url={videoUrl || "https://media.w3.org/2010/05/sintel/trailer_hd.mp4"}
+              width="100%"
+              height="100%"
+              playing={isPlaying && !activeQuiz}
+              onProgress={handleTimeUpdate}
+              onEnded={() => setIsPlaying(false)}
+              onDuration={(duration: number) => setVideoDuration(duration)}
+              controls={true}
+              style={{ position: 'absolute', top: 0, left: 0 }}
+            />
+          </div>
           
           {!isPlaying && !activeQuiz && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-sm z-10 cursor-pointer" onClick={togglePlayPause}>
@@ -618,7 +617,7 @@ function PlayerView({ config, questions, setQuestions, xp, setXp, streak, setStr
             />
           </div>
           <span className="text-base font-bold tabular-nums text-slate-500 min-w-[90px] text-right">
-             {Math.floor(videoRef.current?.currentTime || 0)}s / {Math.floor(videoDuration)}s
+             {Math.floor(currentTime)}s / {Math.floor(videoDuration)}s
           </span>
         </div>
       </div>

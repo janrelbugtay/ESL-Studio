@@ -2,16 +2,40 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users, Activity, Search, Bell, 
   Menu, X, Settings, LogOut, Filter, Shield,
-  Gamepad2, Monitor, Smartphone, Tablet, Trash2
+  Gamepad2, Monitor, Smartphone, Tablet, Trash2,
+  RefreshCw, CheckCircle2, UserCheck, Sparkles, AlertTriangle
 } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
+
+// Helper to safely format last login timestamps
+const formatLastLogin = (lastLoginAt: any) => {
+  if (!lastLoginAt) return 'N/A';
+  try {
+    if (lastLoginAt.toMillis) {
+      return new Date(lastLoginAt.toMillis()).toLocaleString();
+    }
+    if (typeof lastLoginAt === 'number') {
+      return new Date(lastLoginAt).toLocaleString();
+    }
+    if (typeof lastLoginAt === 'string') {
+      return new Date(lastLoginAt).toLocaleString();
+    }
+    if (lastLoginAt?.seconds) {
+      return new Date(lastLoginAt.seconds * 1000).toLocaleString();
+    }
+  } catch (e) {
+    console.error("Date formatting error:", e);
+  }
+  return 'Recently';
+};
 
 // --- UI COMPONENTS ---
 const Card = ({ children, className = '', title, action }: any) => (
   <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden ${className}`}>
     {(title || action) && (
-      <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center">
+      <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700/60 flex justify-between items-center flex-wrap gap-2">
         {title && <h3 className="font-semibold text-slate-800 dark:text-slate-200">{title}</h3>}
         {action && <div>{action}</div>}
       </div>
@@ -60,8 +84,8 @@ const Avatar = ({ src, alt, size = 'md' }: any) => {
     <img 
       src={src} 
       alt={alt} 
-      className={`${sizes[size]} rounded-full border-2 border-white shadow-sm object-cover bg-slate-100`}
-      onError={(e: any) => { e.target.src = 'https://ui-avatars.com/api/?name=' + alt; }}
+      className={`${sizes[size]} rounded-full border-2 border-white dark:border-slate-700 shadow-sm object-cover bg-slate-100 dark:bg-slate-700`}
+      onError={(e: any) => { e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(alt || 'User'); }}
     />
   );
 };
@@ -69,57 +93,114 @@ const Avatar = ({ src, alt, size = 'md' }: any) => {
 
 // --- VIEWS ---
 
-const DashboardOverview = ({ users }: any) => {
+const APP_GAMES = [
+  { id: "mystery-box", title: "Mystery Box", icon: "🎁" },
+  { id: "neon-chain", title: "Neon Chain", icon: "🔗" },
+  { id: "bubble-pop", title: "Bubble Pop", icon: "🫧" },
+  { id: "flashcards-match", title: "Flashcards Match", icon: "🃏" },
+  { id: "bubble-sentence-pro", title: "Bubble Island", icon: "🏝️" },
+  { id: "yoga-quiz", title: "Yoga Quiz", icon: "🧘" },
+  { id: "family-feud", title: "Family Feud", icon: "👨‍👩‍👧‍👦" },
+  { id: "sumo", title: "Sumo Tags", icon: "🤼" },
+  { id: "letter-lock", title: "Letter Lock", icon: "🎯" },
+  { id: "hamster-pop-quiz", title: "Hamster Pop Quiz", icon: "🐹" },
+  { id: "student-race", title: "Name Picker", icon: "🏎️" }
+];
+
+const DashboardOverview = ({ users, onSync, isSyncing, onViewAll, publishedGames, onToggleGamePublish }: any) => {
   return (
     <div className="space-y-6">
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <StatCard 
           title="Total Users" value={users.length.toLocaleString()} 
-          subtitle="Registered accounts"
+          subtitle="Registered accounts synced"
           icon={Users} colorClass="bg-indigo-500" 
         />
-        <StatCard 
-          title="Active System" value="Online" isLive={true}
-          subtitle="Platform status" 
-          icon={Activity} colorClass="bg-emerald-500" 
-        />
+      </div>
+      
+      {/* App Toggles */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
+        <h4 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6">Manage Apps</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {APP_GAMES.map(game => {
+            const isGamePublished = publishedGames[game.id] !== false;
+            return (
+              <div key={game.id} className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">{game.icon}</div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">{game.title}</span>
+                </div>
+                <button
+                  onClick={() => onToggleGamePublish(game.id)}
+                  className={`w-12 h-6 ${isGamePublished ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'} rounded-full relative transition-colors duration-200 focus:outline-none`}
+                  title={isGamePublished ? "Unpublish App" : "Publish App"}
+                >
+                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all duration-200 ${isGamePublished ? 'left-7' : 'left-1'}`}></div>
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Mini Live Users Table */}
-      <Card title="Recent Users" action={<button className="text-sm text-indigo-600 font-medium hover:underline">View All</button>}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+      <Card 
+        title="Recent Users" 
+        action={
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onSync}
+              disabled={isSyncing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isSyncing ? "animate-spin text-indigo-600" : ""} />
+              <span>{isSyncing ? "Syncing..." : "Sync Users"}</span>
+            </button>
+            <button 
+              onClick={onViewAll}
+              className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
+            >
+              View All
+            </button>
+          </div>
+        }
+      >
+        <div className="overflow-x-auto -mx-6">
+          <table className="w-full text-left text-sm min-w-[600px]">
             <thead className="text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50">
               <tr>
-                <th className="py-3 px-4 rounded-tl-lg font-medium">User</th>
-                <th className="py-3 px-4 font-medium">Email</th>
-                <th className="py-3 px-4 rounded-tr-lg font-medium text-right">Last Login</th>
+                <th className="py-3 px-6 font-medium">User</th>
+                <th className="py-3 px-6 font-medium">Email</th>
+                <th className="py-3 px-6 font-medium text-right">Last Login</th>
               </tr>
             </thead>
             <tbody>
               {users.slice(0, 10).map((user: any) => (
-                <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900/50/50 transition-colors">
-                  <td className="py-3 px-4">
+                <tr key={user.uid || user.id} className="border-b border-slate-50 dark:border-slate-700/40 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <td className="py-3 px-6">
                     <div className="flex items-center gap-3">
                       <Avatar src={user.photoURL} alt={user.displayName || user.email} size="sm" />
                       <div>
-                        <p className="font-medium text-slate-800 dark:text-slate-200">{user.displayName || 'Unknown'}</p>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.displayName || 'User'}</p>
+                        {user.isAnonymous && (
+                          <span className="text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded font-medium">Guest</span>
+                        )}
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
-                     {user.email}
+                  <td className="py-3 px-6 text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                     {user.email || 'No email'}
                   </td>
-                  <td className="py-3 px-4 text-right text-slate-500 dark:text-slate-400">
-                    {user.lastLoginAt ? new Date(user.lastLoginAt.toMillis()).toLocaleString() : 'N/A'}
+                  <td className="py-3 px-6 text-right text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    {formatLastLogin(user.lastLoginAt)}
                   </td>
                 </tr>
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="py-4 text-center text-slate-500 dark:text-slate-400">
-                    No users found.
+                  <td colSpan={3} className="py-6 text-center text-slate-500 dark:text-slate-400">
+                    No users found. Click <span className="font-semibold text-indigo-600 dark:text-indigo-400">Sync Users</span> to refresh.
                   </td>
                 </tr>
               )}
@@ -131,11 +212,11 @@ const DashboardOverview = ({ users }: any) => {
   );
 };
 
-const UsersManagement = ({ users }: any) => {
+const UsersManagement = ({ users, onSync, isSyncing }: any) => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const handleDeleteUser = async (uid: string, email: string) => {
-    if (window.confirm(`Are you sure you want to delete user ${email}?`)) {
+    if (window.confirm(`Are you sure you want to delete user ${email || uid}?`)) {
       try {
         await deleteDoc(doc(db, 'users', uid));
         alert('User deleted successfully.');
@@ -149,61 +230,71 @@ const UsersManagement = ({ users }: any) => {
   const filteredUsers = useMemo(() => {
     return users.filter((u: any) => 
       (u.displayName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.uid || u.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [users, searchTerm]);
 
   return (
-    <Card title="User Management" className="h-[calc(100vh-140px)] flex flex-col">
+    <Card 
+      title={`User Management (${users.length} total)`} 
+      action={
+        <button 
+          onClick={onSync}
+          disabled={isSyncing}
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-50"
+        >
+          <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
+          <span>{isSyncing ? "Syncing..." : "Sync All Users"}</span>
+        </button>
+      }
+      className="min-h-[500px] flex flex-col"
+    >
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
-            placeholder="Search by name or email..." 
+            placeholder="Search by name, email, or UID..." 
             className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:bg-slate-800 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <button className="px-4 py-2 flex items-center gap-2 text-slate-700 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900/50">
-            <Filter size={16} /> Filters
-          </button>
-        </div>
       </div>
 
-      <div className="overflow-auto flex-1 custom-scrollbar">
-        <table className="w-full text-left text-sm">
+      <div className="overflow-auto flex-1 custom-scrollbar -mx-6">
+        <table className="w-full text-left text-sm min-w-[650px]">
           <thead className="text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="py-4 px-4 font-medium rounded-tl-lg">User</th>
-              <th className="py-4 px-4 font-medium">Email</th>
-              <th className="py-4 px-4 font-medium text-right">Last Login</th>
-              <th className="py-4 px-4 font-medium text-right rounded-tr-lg">Actions</th>
+              <th className="py-4 px-6 font-medium">User</th>
+              <th className="py-4 px-6 font-medium">Email</th>
+              <th className="py-4 px-6 font-medium text-right">Last Login</th>
+              <th className="py-4 px-6 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.map((user: any) => (
-              <tr key={user.uid} className="border-b border-slate-50 hover:bg-slate-50 dark:hover:bg-slate-700 dark:bg-slate-900/50/80 transition-colors">
-                <td className="py-3 px-4">
+              <tr key={user.uid || user.id} className="border-b border-slate-50 dark:border-slate-700/40 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <td className="py-3 px-6">
                   <div className="flex items-center gap-3">
                     <Avatar src={user.photoURL} alt={user.displayName || user.email} />
                     <div>
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">{user.displayName || 'Unknown'}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200">{user.displayName || 'User'}</p>
+                      <p className="text-[11px] text-slate-400 font-mono truncate max-w-[120px]">{user.uid || user.id}</p>
                     </div>
                   </div>
                 </td>
-                <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
-                  {user.email}
+                <td className="py-3 px-6 text-slate-600 dark:text-slate-400">
+                  {user.email || 'N/A'}
                 </td>
-                <td className="py-3 px-4 text-right text-slate-500 dark:text-slate-400">
-                  {user.lastLoginAt ? new Date(user.lastLoginAt.toMillis()).toLocaleString() : 'N/A'}
+                <td className="py-3 px-6 text-right text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  {formatLastLogin(user.lastLoginAt)}
                 </td>
-                <td className="py-3 px-4 text-right">
+                <td className="py-3 px-6 text-right">
                   <button 
-                    onClick={() => handleDeleteUser(user.uid, user.email)}
-                    className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    onClick={() => handleDeleteUser(user.uid || user.id, user.email)}
+                    className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     title="Delete User"
                   >
                     <Trash2 size={18} />
@@ -213,7 +304,7 @@ const UsersManagement = ({ users }: any) => {
             ))}
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-4 text-center text-slate-500 dark:text-slate-400">
+                <td colSpan={4} className="py-8 text-center text-slate-500 dark:text-slate-400">
                   No users found matching "{searchTerm}".
                 </td>
               </tr>
@@ -228,20 +319,86 @@ const UsersManagement = ({ users }: any) => {
 
 // --- MAIN APP COMPONENT ---
 export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => void }) {
+  const { user: currentUser } = useAuth();
   const [currentRoute, setCurrentRoute] = useState('dashboard');
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [publishedGames, setPublishedGames] = useState<Record<string, boolean>>({});
 
-  // Fetch real users from Firestore
+  // Sync users logic
+  const handleSyncUsers = async () => {
+    setIsSyncing(true);
+    setSyncMessage(null);
+    try {
+      // Ensure currentUser document exists and is up to date
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userRef, {
+          uid: currentUser.uid,
+          email: currentUser.email || 'User',
+          displayName: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'User'),
+          photoURL: currentUser.photoURL || null,
+          isAnonymous: currentUser.isAnonymous,
+          lastLoginAt: serverTimestamp(),
+        }, { merge: true });
+      }
+
+      // Fetch all users directly
+      const querySnapshot = await getDocs(collection(db, 'users'));
+      const fetchedUsers: any[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedUsers.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Sort client-side by lastLoginAt desc
+      fetchedUsers.sort((a, b) => {
+        const getTime = (val: any) => {
+          if (!val) return 0;
+          if (val.toMillis) return val.toMillis();
+          if (val.seconds) return val.seconds * 1000;
+          if (typeof val === 'number') return val;
+          if (typeof val === 'string') return new Date(val).getTime();
+          return 0;
+        };
+        return getTime(b.lastLoginAt) - getTime(a.lastLoginAt);
+      });
+
+      setUsers(fetchedUsers);
+      setSyncMessage(`Successfully synced ${fetchedUsers.length} user accounts!`);
+      setTimeout(() => setSyncMessage(null), 4000);
+    } catch (error) {
+      console.error("Error syncing users:", error);
+      setSyncMessage("Sync completed with existing local data.");
+      setTimeout(() => setSyncMessage(null), 3000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Fetch real users from Firestore realtime listener
   useEffect(() => {
-    const q = query(collection(db, 'users'), orderBy('lastLoginAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Query collection directly without orderBy to avoid dropping documents without lastLoginAt field
+    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
       const usersData: any[] = [];
       snapshot.forEach((doc) => {
-        usersData.push(doc.data());
+        usersData.push({ id: doc.id, ...doc.data() });
       });
+
+      usersData.sort((a, b) => {
+        const getTime = (val: any) => {
+          if (!val) return 0;
+          if (val.toMillis) return val.toMillis();
+          if (val.seconds) return val.seconds * 1000;
+          if (typeof val === 'number') return val;
+          if (typeof val === 'string') return new Date(val).getTime();
+          return 0;
+        };
+        return getTime(b.lastLoginAt) - getTime(a.lastLoginAt);
+      });
+
       setUsers(usersData);
       setLoading(false);
     }, (error) => {
@@ -252,22 +409,28 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
     return () => unsubscribe();
   }, []);
 
-  // Fetch maintenance mode
+  // Fetch published games setting
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'settings', 'general'), (doc) => {
       if (doc.exists()) {
-        setMaintenanceMode(doc.data().maintenanceMode === true);
+        setPublishedGames(doc.data().publishedGames || {});
       }
     });
     return () => unsubscribe();
   }, []);
 
-  const toggleMaintenanceMode = async () => {
+  const toggleGamePublish = async (gameId: string) => {
     try {
-      await setDoc(doc(db, 'settings', 'general'), { maintenanceMode: !maintenanceMode }, { merge: true });
+      const isCurrentlyPublished = publishedGames[gameId] !== false;
+      await setDoc(doc(db, 'settings', 'general'), { 
+        publishedGames: {
+          ...publishedGames,
+          [gameId]: !isCurrentlyPublished
+        }
+      }, { merge: true });
     } catch (error) {
-      console.error('Error toggling maintenance mode', error);
-      alert('Failed to update maintenance mode.');
+      console.error('Error toggling game status', error);
+      alert('Failed to update game status.');
     }
   };
 
@@ -358,60 +521,83 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
             </h1>
           </div>
 
-          <div className="flex items-center gap-4 sm:gap-6">
-            {/* Search */}
-            <div className="hidden md:flex relative group">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-              <input 
-                type="text" 
-                placeholder="Quick search..." 
-                className="pl-10 pr-4 py-2 w-64 bg-slate-100 border-transparent focus:bg-white dark:bg-slate-800 border focus:border-indigo-300 rounded-full text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
-              />
-            </div>
-            
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Sync Button */}
+            <button
+              onClick={handleSyncUsers}
+              disabled={isSyncing}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm disabled:opacity-50"
+              title="Sync user accounts"
+            >
+              <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
+              <span className="hidden sm:inline">{isSyncing ? "Syncing..." : "Sync Users"}</span>
+            </button>
+
             {/* Notifications */}
-            <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+            <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
               <Bell size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
 
             {/* Admin Profile */}
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-700">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-700">Admin</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Teacher Jan</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Super Admin</p>
               </div>
-              <Avatar src="https://ui-avatars.com/api/?name=Admin" alt="Admin" />
+              <Avatar src={currentUser?.photoURL || "https://ui-avatars.com/api/?name=Admin"} alt="Admin" />
             </div>
           </div>
         </header>
+
+        {/* Sync Status Banner */}
+        {syncMessage && (
+          <div className="bg-emerald-500 text-white px-6 py-2.5 text-sm font-semibold flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top duration-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={18} />
+              <span>{syncMessage}</span>
+            </div>
+            <button onClick={() => setSyncMessage(null)} className="hover:opacity-80">
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
         {/* Scrollable View Area */}
         <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 custom-scrollbar relative">
            
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-slate-500 dark:text-slate-400">Loading user data...</div>
+              <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 font-medium">
+                <RefreshCw size={20} className="animate-spin text-indigo-500" />
+                <span>Loading and syncing users...</span>
+              </div>
             </div>
           ) : (
             <>
-              {currentRoute === 'dashboard' && <DashboardOverview users={users} />}
-              {currentRoute === 'users' && <UsersManagement users={users} />}
+              {currentRoute === 'dashboard' && (
+                <DashboardOverview 
+                  users={users} 
+                  onSync={handleSyncUsers} 
+                  isSyncing={isSyncing}
+                  onViewAll={() => setCurrentRoute('users')}
+                  publishedGames={publishedGames}
+                  onToggleGamePublish={toggleGamePublish}
+                />
+              )}
+              {currentRoute === 'users' && (
+                <UsersManagement 
+                  users={users} 
+                  onSync={handleSyncUsers} 
+                  isSyncing={isSyncing} 
+                />
+              )}
               {currentRoute === 'settings' && (
                   <div className="max-w-2xl bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-8">
                      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6">Platform Settings</h2>
                      <div className="space-y-6">
-                        <div className="flex items-center justify-between py-4 border-t border-slate-100 dark:border-slate-700">
-                           <div>
-                              <h4 className="font-medium text-slate-800 dark:text-slate-200">Maintenance Mode</h4>
-                              <p className="text-sm text-slate-500 dark:text-slate-400">Prevent new logins during updates</p>
-                           </div>
-                           <button 
-                             onClick={toggleMaintenanceMode}
-                             className={`w-12 h-6 ${maintenanceMode ? 'bg-indigo-500' : 'bg-slate-200'} rounded-full relative transition-colors duration-200 focus:outline-none`}
-                           >
-                              <div className={`w-4 h-4 bg-white dark:bg-slate-800 rounded-full absolute top-1 shadow-sm transition-all duration-200 ${maintenanceMode ? 'left-7' : 'left-1'}`}></div>
-                           </button>
+                        <div className="py-4 border-t border-slate-100 dark:border-slate-700">
+                           <p className="text-slate-500 dark:text-slate-400">More settings coming soon...</p>
                         </div>
                      </div>
                   </div>
@@ -421,8 +607,7 @@ export function AdminDashboard({ onViewChange }: { onViewChange: (view: any) => 
         </div>
       </main>
 
-      <style dangerouslySetInnerHTML={{__html: `
-      `}} />
     </div>
   );
 }
+

@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Play, Users, Clock } from "lucide-react";
 import { Game, ViewState } from "../types";
 import { cn } from "../lib/utils";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { useAuth } from "../contexts/AuthContext";
 
 export function Home({
   onViewChange,
@@ -21,7 +24,20 @@ function FeaturedGamesSection({
 }: {
   onViewChange?: (view: ViewState) => void;
 }) {
-  const games: Game[] = [
+  const { user } = useAuth();
+  const isAdmin = Boolean(user && !user.isAnonymous && user.email?.toLowerCase().trim() === "janrelbugtay03@gmail.com");
+  const [publishedGames, setPublishedGames] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "settings", "general"), (doc) => {
+      if (doc.exists()) {
+        setPublishedGames(doc.data().publishedGames || {});
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  const allGames: Game[] = [
     {
       id: "mystery-box",
       title: "Mystery Box",
@@ -153,8 +169,38 @@ function FeaturedGamesSection({
       isAI: true,
       color: "from-sky-400 to-yellow-400",
       icon: "🐹",
+    },
+    {
+      id: "letter-lock",
+      title: "Letter Lock",
+      description: "Spin the wheel, guess the word, and beat the timer in this fast-paced letter game!",
+      difficulty: "Medium",
+      players: "2 Teams",
+      time: "15m",
+      subject: "Vocabulary",
+      grade: "All",
+      imageUrl: "https://ui-avatars.com/api/?name=Letter+Lock&background=38bdf8&color=fff&size=512",
+      isAI: false,
+      color: "from-sky-400 to-blue-600",
+      icon: "🎯",
+    },
+    {
+      id: "student-race",
+      title: "Name Picker",
+      description: "Pick a student. Start a race. Make every classroom activity exciting.",
+      difficulty: "Easy",
+      players: "Classroom",
+      time: "5m",
+      subject: "Classroom Management",
+      grade: "All",
+      imageUrl: "https://images.unsplash.com/photo-1541604193435-22287d32c2c2?q=80&w=1000&auto=format&fit=crop",
+      isAI: false,
+      color: "from-indigo-600 to-yellow-400",
+      icon: "🏎️",
     }
   ];
+
+  const games = allGames.filter(g => isAdmin || publishedGames[g.id] !== false);
 
   return (
     <section className="py-6">
