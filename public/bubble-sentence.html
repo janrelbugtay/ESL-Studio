@@ -184,12 +184,37 @@
         }
 
         .bubble-word.snapped {
-            position: relative; transform: none !important;
+            position: relative;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            pointer-events: none;
+            
             background: radial-gradient(circle at 30% 30%, #dcfce7, #86efac);
             color: #14532d;
             animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+                @keyframes wrong-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+        .bubble-word.wrong-shake {
+            animation: wrong-shake 0.4s ease-in-out infinite !important;
+        }
+        
+        .wrong-x-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.5rem;
+            color: #ef4444;
+            font-weight: 900;
+            z-index: 50;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            line-height: 1;
         }
 
         /* Slots */
@@ -218,7 +243,7 @@
         
         #particle-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 50;
+             z-index: 50;
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 10px; }
@@ -287,6 +312,36 @@
         }
 
     </style>
+
+<script>
+window.onerror = function(message, source, lineno, colno, error) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.position = 'fixed';
+    errorDiv.style.top = '0';
+    errorDiv.style.left = '0';
+    errorDiv.style.zIndex = '999999';
+    errorDiv.style.backgroundColor = 'rgba(255,0,0,0.8)';
+    errorDiv.style.color = 'white';
+    errorDiv.style.padding = '10px';
+    errorDiv.style.fontSize = '16px';
+    errorDiv.innerText = message + ' at ' + lineno + ':' + colno + ' ' + (error && error.stack ? error.stack : '');
+    document.body.appendChild(errorDiv);
+};
+window.onunhandledrejection = function(event) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.position = 'fixed';
+    errorDiv.style.top = '50px';
+    errorDiv.style.left = '0';
+    errorDiv.style.zIndex = '999999';
+    errorDiv.style.backgroundColor = 'rgba(255,100,0,0.8)';
+    errorDiv.style.color = 'white';
+    errorDiv.style.padding = '10px';
+    errorDiv.style.fontSize = '16px';
+    errorDiv.innerText = 'Unhandled Promise Rejection: ' + event.reason;
+    document.body.appendChild(errorDiv);
+};
+</script>
+
 </head>
 <body class="theme-sky" id="game-body">
 
@@ -465,7 +520,7 @@
         </div>
 
         <!-- Sentence Area with Illustration -->
-        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col w-[95%] max-w-[95%] z-20">
+        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col w-[95%] max-w-[95%] z-10">
             <!-- Dynamic Emoji Illustration -->
             
 
@@ -484,7 +539,7 @@
         </div>
 
         <!-- Physics Area -->
-        <div id="physics-area" class="absolute top-24 left-0 w-full z-10 overflow-visible pointer-events-none" style="bottom: 320px;"></div>
+        <div id="physics-area" class="absolute top-24 left-0 w-full z-20 overflow-visible pointer-events-none" style="bottom: 320px;"></div>
     </div>
 
     <div id="screen-win" class="screen bg-black/60 backdrop-blur-md justify-center items-center z-40">
@@ -1259,7 +1314,7 @@
                 con.innerHTML = '';
                 this.words.forEach((w,i) => {
                     const s = document.createElement('div');
-                    s.className = 'word-slot shadow-inner';
+                    s.className = 'word-slot shadow-inner relative';
                     s.dataset.w = w.toLowerCase();
                     con.appendChild(s);
                     this.slots.push({ el: s, w: w.toLowerCase(), filled: false });
@@ -1295,18 +1350,12 @@
                         snapped: false, scaleX: 1, scaleY: 1,
                         shakeTime: 0
                     });
-                });
-            },
-
-            setupDrag() {
-                const doc = document.getElementById('screen-game');
-                
-                doc.addEventListener('pointerdown', e => {
-                    let target = e.target;
-                    if (target.nodeType === 3) target = target.parentNode;
-                    const targetEl = target.closest ? target.closest('.bubble-word') : null;
-                    if(targetEl) {
-                        const clickedB = this.bubbles.find(b => b.el === targetEl);
+                    
+                    // Bind pointerdown directly to the element to avoid pointer-events bubbling bugs on mobile
+                    
+                    el.addEventListener('pointerdown', e => {
+                        e.stopPropagation();
+                                                const clickedB = this.bubbles.find(bb => bb.el === el);
                         if(!clickedB) return;
                         
                         if (clickedB.snapped) {
@@ -1314,20 +1363,29 @@
                             return;
                         }
                         
-                        // We set up drag
                         this.dragB = clickedB;
                         const r = clickedB.el.getBoundingClientRect();
                         this.dragOff = { x: e.clientX - r.left, y: e.clientY - r.top };
                         clickedB.el.classList.add('dragging');
                         clickedB.vx = 0; clickedB.vy = 0;
                         
-                        // Also treat as click if it doesn't move much
                         clickedB.startX = e.clientX;
                         clickedB.startY = e.clientY;
                         clickedB.isClick = true;
-                    }
-                });
+                    });
 
+                    
+                    
+
+                    
+                });
+            },
+
+            setupDrag() {
+                const doc = document.getElementById('screen-game');
+                
+                
+                // (pointerdown is now bound directly to bubbles)
                 window.addEventListener('pointermove', e => {
                     if(this.dragB) {
                         const bnds = document.getElementById('physics-area').getBoundingClientRect();
@@ -1336,9 +1394,18 @@
                         this.dragB.x = newX;
                         this.dragB.y = newY;
                         
-                        if(Math.abs(e.clientX - this.dragB.startX) > 30 || Math.abs(e.clientY - this.dragB.startY) > 30) {
+                        // Jitter tolerance
+                        const dist = Math.hypot(e.clientX - this.dragB.startX, e.clientY - this.dragB.startY);
+                        if (dist > 25) {
                             this.dragB.isClick = false;
                         }
+                    }
+                });
+
+                window.addEventListener('pointercancel', e => {
+                    if (this.dragB) {
+                        this.dragB.el.classList.remove('dragging');
+                        this.dragB = null;
                     }
                 });
 
@@ -1350,10 +1417,8 @@
                         
                         if (clickedB.isClick) {
                             const nextI = this.slots.findIndex(s => !s.filled);
-                            const wordText = clickedB.wordText.toLowerCase();
-                            
                             if (nextI !== -1) {
-                                if (this.slots[nextI].w === wordText) {
+                                if (this.slots[nextI].w === clickedB.wordText.toLowerCase()) {
                                     this.correct(clickedB, this.slots[nextI]);
                                 } else {
                                     this.wrong(clickedB, this.slots[nextI]);
@@ -1428,7 +1493,9 @@
                 const slot = this.slots.find(s => s.el.contains(b.el));
                 if (slot && slot.filled) {
                     slot.filled = false;
-                    this.placed--;
+                    if (!b.isError) {
+                        this.placed--;
+                    }
                 }
                 b.snapped = false;
                 b.el.classList.remove('snapped');
@@ -1444,79 +1511,70 @@
                 
                 if (window.Audio && Audio.click) Audio.click();
             },
-            wrong(b, slot) {
-                if (slot) {
-                    b.snapped = true; // Temporary snap
-                    b.el.style.transform = 'none';
-                    b.el.style.position = 'relative';
-                    b.el.style.left = 'auto';
-                    b.el.style.top = 'auto';
-                    b.el.classList.add('snapped');
-                    slot.el.appendChild(b.el);
-                    
-                    slot.el.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                    slot.el.style.borderColor = '#ef4444';
-                }
+            
+                        wrong(b, slot) {
+                if (!slot) return;
                 
-                Audio.wrong(); Mascot.react('sad');
+                // 1. Temporarily snap it to the slot so it appears in the box
+                b.snapped = true;
+                slot.filled = true;
+                
+                b.el.style.transform = 'none'; 
+                b.el.style.position = 'relative';
+                b.el.style.left = 'auto'; 
+                b.el.style.top = 'auto';
+                b.el.classList.add('snapped');
+                slot.el.innerHTML = ''; 
+                slot.el.appendChild(b.el);
+
+                // Play snap effect so they know it landed in the box
+                Audio.snap();
+                const r = slot.el.getBoundingClientRect();
+                Particles.spawn(r.left + r.width/2, r.top + r.height/2, 20, '#ef4444');
+
+                // 2. Mark it wrong visually
+                slot.el.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                slot.el.style.borderColor = '#ef4444';
+                b.el.style.borderColor = '#ef4444';
+                b.el.style.color = '#7f1d1d';
+                b.el.style.background = 'radial-gradient(circle at 30% 30%, #fecaca, #f87171)';
+                
+                let xMark = document.createElement('div');
+                xMark.className = 'wrong-x-mark';
+                xMark.innerText = '❌';
+                // Append X to the bubble itself so it's guaranteed to be visible and centered!
+                b.el.appendChild(xMark);
+                
+                setTimeout(() => Audio.wrong(), 200); // Play wrong sound right after snap
+                Mascot.react('sad');
                 this.combo = 0; this.mistakes++; this.updateScore();
                 
-                // Visual feedback
-                b.el.style.borderColor = '#ef4444';
-                b.el.style.color = '#ef4444';
-                b.shakeTime = 400; // 400ms shake
+                b.el.classList.add('wrong-shake'); // CSS shake
+                b.isError = true;
                 
-                let xMark = b.el.querySelector('.wrong-x');
-                if (!xMark) {
-                    xMark = document.createElement('div');
-                    xMark.className = 'wrong-x absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl text-red-500 font-black z-20 pointer-events-none drop-shadow-md opacity-0 transition-opacity duration-200';
-                    xMark.innerText = '❌';
-                    b.el.appendChild(xMark);
-                }
-                
-                // Show the X
-                requestAnimationFrame(() => {
-                    if(xMark) {
-                        xMark.style.opacity = '1';
-                        xMark.style.transform = 'translate(-50%, -50%) scale(1.5)';
-                        setTimeout(() => {
-                            if(xMark) xMark.style.transform = 'translate(-50%, -50%) scale(1)';
-                        }, 100);
-                    }
-                });
-                
-                if (!slot) {
-                    b.isError = true;
-                    b.vy = -12; b.vx = (Math.random()-0.5)*20;
-                }
-                
+                // 3. Wait 800ms, then pop it back out
                 setTimeout(() => {
+                    if (xMark) xMark.remove();
+                    slot.el.style.backgroundColor = '';
+                    slot.el.style.borderColor = '';
+                    
                     b.el.style.borderColor = '';
                     b.el.style.color = '';
-                    b.isError = false;
-                    if(xMark) xMark.style.opacity = '0';
+                    b.el.style.background = ''; b.el.classList.remove('wrong-shake');
                     
-                    if (slot) {
-                        slot.el.style.backgroundColor = '';
-                        slot.el.style.borderColor = '';
-                        
-                        b.snapped = false;
-                        b.el.classList.remove('snapped');
-                        b.el.style.position = 'absolute';
-                        const area = document.getElementById('physics-area');
-                        area.appendChild(b.el);
-                        
-                        const sRect = slot.el.getBoundingClientRect();
-                        const aRect = area.getBoundingClientRect();
-                        b.x = sRect.left - aRect.left;
-                        b.y = sRect.top - aRect.top;
-                        b.vy = -12; b.vx = (Math.random()-0.5)*20;
+                    // Only unsnap if user hasn't already pulled it out manually
+                    if (b.snapped && b.el.parentElement === slot.el) {
+                        this.unsnap(b);
+                        // Add an extra bounce when it pops out
+                        b.vy = -15; 
+                        b.vx = (Math.random()-0.5)*20;
                     }
+                    
+                    b.isError = false;
                 }, 800);
                 
                 this.checkComboEffects();
             },
-
             updateScore() {
                 // Score is hidden now
             },

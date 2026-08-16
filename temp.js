@@ -314,7 +314,6 @@
             },
             toggleClassroomMode(val) {
                 this.classroomMode = val;
-                document.getElementById('ui-classroom-scores').classList.toggle('hidden', !val);
             },
             resetProgress() {
                 Dialog.confirm("Factory reset? This deletes all custom lessons and progress.", (yes) => {
@@ -436,20 +435,17 @@
             selectedCatId: null,
             openLobby(catId) {
                 this.selectedCatId = catId;
-                this.selectMode(this.classroomMode); // Select current mode
+                const prog = Storage.data.progress[catId] || { stars: 0, bestScore: 0 };
+                document.getElementById('lobby-best-score').innerText = prog.bestScore || 0;
+                document.getElementById('lobby-stars').innerText = prog.stars || 0;
+                if(typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
                 this.showScreen('screen-setup');
             },
             selectMode(isClassroom) {
-                this.classroomMode = isClassroom;
-                document.getElementById('ui-classroom-scores').classList.toggle('hidden', !isClassroom);
-                
-                document.getElementById('btn-mode-1').classList.toggle('border-blue-500', !isClassroom);
-                document.getElementById('btn-mode-1').classList.toggle('border-gray-200', isClassroom);
-                
-                document.getElementById('btn-mode-2').classList.toggle('border-blue-500', isClassroom);
-                document.getElementById('btn-mode-2').classList.toggle('border-gray-200', !isClassroom);
+                // Disabled.
             },
             startGameFromLobby() {
+                this.classroomMode = window.teamsData && window.teamsData.length > 1;
                 if (this.selectedCatId) {
                     this.start(this.selectedCatId);
                 }
@@ -463,8 +459,13 @@
                 
                 // Classroom scores
                 if(this.classroomMode) {
-                    document.getElementById('score-blue').innerText = '0';
-                    document.getElementById('score-red').innerText = '0';
+                    window.teamsData.forEach(t => t.score = 0);
+                    if (typeof renderTeams === 'function') renderTeams();
+                    const container = document.getElementById('teams-container');
+                    if (container) container.style.display = 'flex';
+                } else {
+                    const container = document.getElementById('teams-container');
+                    if (container) container.style.display = 'none';
                 }
 
                 this.showScreen('screen-game');
@@ -493,7 +494,7 @@
                 
                 
                 document.getElementById('ui-lesson-status').innerText = `${this.idx + 1} / ${this.sents.length}`;
-                document.getElementById('ui-progress').style.width = `${(this.idx/this.sents.length)*100}%`;
+                if(document.getElementById('ui-progress')) document.getElementById('ui-progress').style.width = `${(this.idx/this.sents.length)*100}%`;
                 this.updateScore();
                 
                 this.renderSlots(); this.createBubbles();
@@ -514,6 +515,10 @@
                 document.getElementById('game-body').style.animation = 'none';
                 ring.style.stroke = '#4ade80'; // Green
                 
+                const lobbyTimer = document.getElementById('lobby-timer-select');
+                if (lobbyTimer && lobbyTimer.value !== 'default') {
+                    seconds = parseInt(lobbyTimer.value);
+                }
                 if(seconds === 0 || !seconds || !timerEnabled) {
                     this.timerTotal = 0; text.innerText = '∞';
                     ring.style.strokeDashoffset = '0';
@@ -526,6 +531,7 @@
                 this.timeLeft = seconds;
                 
                 this.timerInterval = setInterval(() => {
+                    if (this.isFrozen) return;
                     this.timeLeft--;
                     text.innerText = this.timeLeft;
                     
@@ -556,7 +562,7 @@
                 con.innerHTML = '';
                 this.words.forEach((w,i) => {
                     const s = document.createElement('div');
-                    s.className = 'word-slot shadow-inner';
+                    s.className = 'word-slot shadow-inner relative';
                     s.dataset.w = w.toLowerCase();
                     con.appendChild(s);
                     this.slots.push({ el: s, w: w.toLowerCase(), filled: false });
@@ -584,7 +590,7 @@
                     if (isNaN(by) || by < 0) by = aRect.height / 2 || 100;
                     
                     this.bubbles.push({
-                        el, w,
+                        el, wordText: w,
                         x: bx,
                         y: by,
                         w: bR.width || 100, h: bR.height || 40,
@@ -592,31 +598,42 @@
                         snapped: false, scaleX: 1, scaleY: 1,
                         shakeTime: 0
                     });
-                });
-            },
-
-            setupDrag() {
-                const doc = document.getElementById('screen-game');
-                
-                doc.addEventListener('pointerdown', e => {
-                    if(e.target.classList.contains('bubble-word') && !e.target.classList.contains('snapped')) {
-                        const clickedB = this.bubbles.find(b => b.el === e.target);
+                    
+                    // Bind pointerdown directly to the element to avoid pointer-events bubbling bugs on mobile
+                    el.addEventListener('pointerdown', e => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const clickedB = this.bubbles.find(bb => bb.el === el);
                         if(!clickedB) return;
                         
-                        // We set up drag
+                        if (clickedB.snapped) {
+                            this.unsnap(clickedB);
+                            return;
+                        }
+                        
                         this.dragB = clickedB;
                         const r = clickedB.el.getBoundingClientRect();
                         this.dragOff = { x: e.clientX - r.left, y: e.clientY - r.top };
                         clickedB.el.classList.add('dragging');
                         clickedB.vx = 0; clickedB.vy = 0;
                         
-                        // Also treat as click if it doesn't move much
                         clickedB.startX = e.clientX;
                         clickedB.startY = e.clientY;
                         clickedB.isClick = true;
-                    }
-                });
+                    });
 
+                    
+                    
+
+                    
+                });
+            },
+
+            setupDrag() {
+                const doc = document.getElementById('screen-game');
+                
+                
+                // (pointerdown is now bound directly to bubbles)
                 window.addEventListener('pointermove', e => {
                     if(this.dragB) {
                         const bnds = document.getElementById('physics-area').getBoundingClientRect();
@@ -625,9 +642,18 @@
                         this.dragB.x = newX;
                         this.dragB.y = newY;
                         
-                        if(Math.abs(e.clientX - this.dragB.startX) > 5 || Math.abs(e.clientY - this.dragB.startY) > 5) {
+                        // Jitter tolerance
+                        const dist = Math.hypot(e.clientX - this.dragB.startX, e.clientY - this.dragB.startY);
+                        if (dist > 25) {
                             this.dragB.isClick = false;
                         }
+                    }
+                });
+
+                window.addEventListener('pointercancel', e => {
+                    if (this.dragB) {
+                        this.dragB.el.classList.remove('dragging');
+                        this.dragB = null;
                     }
                 });
 
@@ -637,33 +663,48 @@
                         this.dragB.el.classList.remove('dragging');
                         this.dragB = null;
                         
-                        const nextI = this.slots.findIndex(s => !s.filled);
-                        if(nextI !== -1) {
-                            const slot = this.slots[nextI];
-                            
-                            if (clickedB.isClick) {
-                                if(clickedB.el.innerText.toLowerCase() === slot.w) {
-                                    this.correct(clickedB, slot);
+                        if (clickedB.isClick) {
+                            const nextI = this.slots.findIndex(s => !s.filled);
+                            if (nextI !== -1) {
+                                if (this.slots[nextI].w === clickedB.wordText.toLowerCase()) {
+                                    this.correct(clickedB, this.slots[nextI]);
                                 } else {
-                                    this.wrong(clickedB, slot);
+                                    this.wrong(clickedB, this.slots[nextI]);
                                 }
-                            } else {
-                                this.checkDrop(clickedB, e.clientX, e.clientY);
                             }
+                        } else {
+                            this.checkDrop(clickedB, e.clientX, e.clientY);
                         }
                     }
                 });
             },
             checkDrop(b, cx, cy) {
-                const nextI = this.slots.findIndex(s => !s.filled);
-                if(nextI === -1) return;
-                const slot = this.slots[nextI];
-                const r = slot.el.getBoundingClientRect();
                 const pad = 30; // Generous hit area
+                const wordText = b.wordText.toLowerCase();
                 
-                if(cx > r.left-pad && cx < r.right+pad && cy > r.top-pad && cy < r.bottom+pad) {
-                    if(b.el.innerText.toLowerCase() === slot.w) this.correct(b, slot);
-                    else this.wrong(b, slot);
+                // First check if they dropped it on ANY empty slot
+                for (let slot of this.slots) {
+                    if (slot.filled) continue;
+                    const r = slot.el.getBoundingClientRect();
+                    if(cx > r.left-pad && cx < r.right+pad && cy > r.top-pad && cy < r.bottom+pad) {
+                        if(wordText === slot.w) {
+                            this.correct(b, slot);
+                            return;
+                        } else {
+                            this.wrong(b, slot);
+                            return; // dropped on wrong slot
+                        }
+                    }
+                }
+
+                // If they dropped it anywhere else, act like a click and drop into the next available slot
+                const nextI = this.slots.findIndex(s => !s.filled);
+                if (nextI !== -1) {
+                    if (this.slots[nextI].w === wordText) {
+                        this.correct(b, this.slots[nextI]);
+                    } else {
+                        this.wrong(b, this.slots[nextI]);
+                    }
                 }
             },
 
@@ -679,60 +720,104 @@
                 slot.el.innerHTML=''; slot.el.appendChild(b.el); slot.el.classList.remove('highlight');
                 
                 // Scoring
-                const diffMulti = this.sents[this.idx].diff;
-                this.score += (100 * diffMulti) + (this.combo * 50);
-                this.combo++; if(this.combo > this.maxCombo) this.maxCombo = this.combo;
-                
-                // Classroom Mode Add Points
-                if(this.classroomMode) {
-                    const team = Math.random() > 0.5 ? 'blue' : 'red';
-                    const el = document.getElementById(`score-${team}`);
-                    el.innerText = parseInt(el.innerText) + 100;
+                if (!b.hasScored) {
+                    const diffMulti = this.sents[this.idx].diff;
+                    this.score += (100 * diffMulti) + (this.combo * 50);
+                    this.combo++; if(this.combo > this.maxCombo) this.maxCombo = this.combo;
+                    
+                    // Classroom Mode Add Points (Handled manually by teacher clicks now)
+                    b.hasScored = true;
                 }
 
                 this.updateScore(); this.updateHints(); this.checkComboEffects();
                 
                 if(this.placed === this.words.length) {
                     clearInterval(this.timerInterval);
-                    this.levelTimeout = setTimeout(()=>this.idxComplete(), 1000);
+                    this.levelTimeout = setTimeout(()=>this.idxComplete(), 500);
                 }
             },
-            wrong(b, slot) {
-                if (slot) {
-                    slot.el.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                    slot.el.style.borderColor = '#ef4444';
-                    setTimeout(() => {
-                        slot.el.style.backgroundColor = '';
-                        slot.el.style.borderColor = '';
-                    }, 400);
+            unsnap(b) {
+                if(!b.snapped) return;
+                const slot = this.slots.find(s => s.el.contains(b.el));
+                if (slot && slot.filled) {
+                    slot.filled = false;
+                    if (!b.isError) {
+                        this.placed--;
+                    }
                 }
+                b.snapped = false;
+                b.el.classList.remove('snapped');
+                b.el.style.position = 'absolute';
+                const area = document.getElementById('physics-area');
+                area.appendChild(b.el);
+                
+                const aRect = area.getBoundingClientRect();
+                b.x = aRect.width / 2;
+                b.y = aRect.height / 2;
+                b.vx = (Math.random()-0.5)*10;
+                b.vy = (Math.random()-0.5)*10;
+                
+                if (window.Audio && Audio.click) Audio.click();
+            },
+            
+                        wrong(b, slot) {
+                if (!slot) return;
+                
+                // 1. Temporarily snap it to the slot so it appears in the box
+                b.snapped = true;
+                slot.filled = true;
+                
+                b.el.style.transform = 'none'; 
+                b.el.style.position = 'relative';
+                b.el.style.left = 'auto'; 
+                b.el.style.top = 'auto';
+                b.el.classList.add('snapped');
+                slot.el.innerHTML = ''; 
+                slot.el.appendChild(b.el);
+
+                // 2. Mark it wrong visually
+                slot.el.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                slot.el.style.borderColor = '#ef4444';
+                b.el.style.borderColor = '#ef4444';
+                b.el.style.color = '#7f1d1d';
+                b.el.style.background = 'radial-gradient(circle at 30% 30%, #fecaca, #f87171)';
+                
+                let xMark = document.createElement('div');
+                xMark.className = 'wrong-x-slot absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl text-red-500 font-black z-20 pointer-events-none drop-shadow-md';
+                xMark.innerText = '❌';
+                slot.el.appendChild(xMark);
+                
                 Audio.wrong(); Mascot.react('sad');
                 this.combo = 0; this.mistakes++; this.updateScore();
                 
-                // Visual feedback
-                b.el.style.borderColor = '#ef4444';
-                b.el.style.color = '#ef4444';
-                b.shakeTime = 400; // 400ms shake
-                
-                // Force a temporary fast speed
+                b.el.classList.add('wrong-shake'); // CSS shake
                 b.isError = true;
-                b.vy = -12; b.vx = (Math.random()-0.5)*20;
                 
+                // 3. Wait 800ms, then pop it back out
                 setTimeout(() => {
+                    if (xMark) xMark.remove();
+                    slot.el.style.backgroundColor = '';
+                    slot.el.style.borderColor = '';
+                    
                     b.el.style.borderColor = '';
                     b.el.style.color = '';
+                    b.el.style.background = ''; b.el.classList.remove('wrong-shake');
+                    
+                    // Only unsnap if user hasn't already pulled it out manually
+                    if (b.snapped && b.el.parentElement === slot.el) {
+                        this.unsnap(b);
+                        // Add an extra bounce when it pops out
+                        b.vy = -15; 
+                        b.vx = (Math.random()-0.5)*20;
+                    }
+                    
                     b.isError = false;
-                }, 500);
+                }, 800);
                 
                 this.checkComboEffects();
             },
-
             updateScore() {
-                document.getElementById('ui-score').innerText = this.score;
-                const cEl = document.getElementById('ui-combo');
-                cEl.innerText = `x${this.combo}`;
-                cEl.style.transform = 'scale(1.5)';
-                setTimeout(()=>cEl.style.transform = 'scale(1)', 200);
+                // Score is hidden now
             },
             updateHints() {
                 if(!this.hintsEnabled) return;
@@ -745,24 +830,42 @@
                     this.showHint();
                 } else if (type === 'solve') {
                     this.showAnswer();
+                } else if (type === 'show') {
+                    this.showAllAnswers();
                 } else if (type === 'freeze') {
-                    if (this.isFrozen) return;
-                    this.isFrozen = true;
-                    Audio.coin();
-                    Particles.spawn(window.innerWidth/2, window.innerHeight/2, 50, '#93c5fd', 'sparkle', 2);
-                    document.getElementById('timer-container').style.filter = 'drop-shadow(0 0 20px #60a5fa)';
-                    document.getElementById('ui-timer-text').style.color = '#3b82f6';
-                    setTimeout(() => {
+                    const btn = document.getElementById('btn-freeze');
+                    if (this.isFrozen) {
                         this.isFrozen = false;
+                        if (btn) btn.innerHTML = '❄️ Freeze';
+                        if(this.freezeTimeout) clearTimeout(this.freezeTimeout);
                         document.getElementById('timer-container').style.filter = '';
                         document.getElementById('ui-timer-text').style.color = '';
-                    }, 10000); // 10 seconds of freeze
+                        this.bubbles.forEach(b => {
+                            if (!b.snapped && this.dragB !== b) {
+                                b.vx = (Math.random() - 0.5) * 4;
+                                b.vy = (Math.random() - 0.5) * 4;
+                            }
+                        });
+                    } else {
+                        this.isFrozen = true;
+                        if (btn) btn.innerHTML = '❄️ Unfreeze';
+                        Audio.coin();
+                        Particles.spawn(window.innerWidth/2, window.innerHeight/2, 50, '#93c5fd', 'sparkle', 2);
+                        document.getElementById('timer-container').style.filter = 'drop-shadow(0 0 20px #60a5fa)';
+                        document.getElementById('ui-timer-text').style.color = '#3b82f6';
+                        this.freezeTimeout = setTimeout(() => {
+                            this.isFrozen = false;
+                            if (btn) btn.innerHTML = '❄️ Freeze';
+                            document.getElementById('timer-container').style.filter = '';
+                            document.getElementById('ui-timer-text').style.color = '';
+                        }, 10000); // 10 seconds of freeze
+                    }
                 }
             },
             showHint() {
                 const n = this.slots.find(s=>!s.filled);
                 if(n) {
-                    const b = this.bubbles.find(b => !b.snapped && b.el.innerText.toLowerCase() === n.w);
+                    const b = this.bubbles.find(b => !b.snapped && b.wordText.toLowerCase() === n.w);
                     if(b) {
                         b.shakeTime = 800;
                         b.el.style.borderColor = '#fbbf24';
@@ -781,11 +884,22 @@
             showAnswer() {
                 const n = this.slots.find(s=>!s.filled);
                 if(n) {
-                    const b = this.bubbles.find(b => !b.snapped && b.el.innerText.toLowerCase() === n.w);
+                    const b = this.bubbles.find(b => !b.snapped && b.wordText.toLowerCase() === n.w);
                     if(b) {
                         this.correct(b, n);
                     }
                 }
+            },
+            showAllAnswers() {
+                const unfurls = this.slots.filter(s => !s.filled);
+                unfurls.forEach((n, idx) => {
+                    setTimeout(() => {
+                        const b = this.bubbles.find(b => !b.snapped && b.wordText.toLowerCase() === n.w);
+                        if(b) {
+                            this.correct(b, n);
+                        }
+                    }, idx * 150); // Stagger the snapping slightly
+                });
             },
             checkComboEffects() {
                 // Apply visual classes to all unsnapped bubbles
@@ -802,7 +916,7 @@
                 Particles.fireworks();
                 this.idx++;
                 if(this.idx >= this.sents.length) { this.levelTimeout = setTimeout(()=>this.winGame(), 1500); }
-                else { this.levelTimeout = setTimeout(()=>this.loadLevel(), 1500); }
+                else { this.levelTimeout = setTimeout(()=>this.loadLevel(), 800); }
             },
 
             winGame() {
@@ -855,63 +969,74 @@
                         speedMult = Storage.data.profile.settings.bubbleSpeed || 1;
                         sizeMult = Storage.data.profile.settings.bubbleSize || 1;
                     }
-                    if (this.isFrozen) speedMult *= 0.2; // very slow when frozen
+                    if (this.isFrozen) speedMult = 0; // stop when frozen
 
                     this.bubbles.forEach((b, i) => {
-                        if(b.snapped || this.dragB === b) return;
+                        if (b.snapped) return;
                         
-                        // Gentle wandering force in any direction
-                        b.vx += (Math.random() - 0.5) * 0.1 * dt * speedMult;
-                        b.vy += (Math.random() - 0.5) * 0.1 * dt * speedMult;
-                        
-                        // Maintain a steady, gentle speed (prevents stopping or moving too fast)
-                        let speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
-                        if (b.isError && speed > 10) {
-                            b.vx = (b.vx / speed) * 10;
-                            b.vy = (b.vy / speed) * 10;
-                        } else if (!b.isError && speed > 2.5) {
-                            b.vx = (b.vx / speed) * 2.5;
-                            b.vy = (b.vy / speed) * 2.5;
-                        } else if (speed < 0.5 && speed > 0) {
-                            b.vx = (b.vx / speed) * 0.5;
-                            b.vy = (b.vy / speed) * 0.5;
-                        }
-
-                        b.x += b.vx * dt; b.y += b.vy * dt;
-if (isNaN(b.x)) b.x = bnds.width / 2;
-if (isNaN(b.y)) b.y = bnds.height / 2;
-                        
-                        // Wobble organically
-                        b.scaleX = 1 + Math.sin(t/300 + i)*0.03;
-                        b.scaleY = 1 + Math.cos(t/300 + i)*0.03;
-                        
-                        // Bounds (Elastic bounce instead of losing momentum)
-                        const scaledW = b.w * sizeMult;
-                        const scaledH = b.h * sizeMult;
-                        const offsetX = (scaledW - b.w) / 2;
-                        const offsetY = (scaledH - b.h) / 2;
-                        
-                        if(b.x < offsetX) { b.x = offsetX; b.vx *= -1; }
-                        if(b.x + b.w + offsetX > bnds.width) { b.x = bnds.width - b.w - offsetX; b.vx *= -1; }
-                        if(b.y < offsetY) { b.y = offsetY; b.vy *= -1; }
-                        if(b.y + b.h + offsetY > bnds.height) { b.y = bnds.height - b.h - offsetY; b.vy *= -1; }
-                        
-                        // Collisions (Soft Repel)
-                        for(let j=i+1; j<this.bubbles.length; j++) {
-                            const b2 = this.bubbles[j];
-                            if(b2.snapped || this.dragB === b2) continue;
-                            const dx = (b.x+b.w/2) - (b2.x+b2.w/2);
-                            const dy = (b.y+b.h/2) - (b2.y+b2.h/2);
-                            const dist = Math.sqrt(dx*dx + dy*dy);
-                            const minDist = (b.w + b2.w)*0.45;
-                            if(dist < minDist && dist>0) {
-                                const force = (minDist - dist)*0.1;
-                                const ax = (dx/dist)*force; const ay = (dy/dist)*force;
-                                b.vx += ax; b.vy += ay; b2.vx -= ax; b2.vy -= ay;
+                        let rot = 0;
+                        if (this.dragB === b) {
+                            // If being dragged, skip physics, but set scale
+                            b.scaleX = 1.1;
+                            b.scaleY = 1.1;
+                        } else {
+                            if (this.isFrozen) {
+                                b.vx = 0;
+                                b.vy = 0;
+                            } else {
+                                // Gentle wandering force in any direction
+                                b.vx += (Math.random() - 0.5) * 0.1 * dt * speedMult;
+                                b.vy += (Math.random() - 0.5) * 0.1 * dt * speedMult;
                             }
+                            
+                            // Maintain a steady, gentle speed (prevents stopping or moving too fast)
+                            let speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+                            if (b.isError && speed > 10) {
+                                b.vx = (b.vx / speed) * 10;
+                                b.vy = (b.vy / speed) * 10;
+                            } else if (!b.isError && speed > 2.5) {
+                                b.vx = (b.vx / speed) * 2.5;
+                                b.vy = (b.vy / speed) * 2.5;
+                            } else if (speed < 0.5 && speed > 0) {
+                                b.vx = (b.vx / speed) * 0.5;
+                                b.vy = (b.vy / speed) * 0.5;
+                            }
+
+                            b.x += b.vx * dt; b.y += b.vy * dt;
+                            if (isNaN(b.x)) b.x = bnds.width / 2;
+                            if (isNaN(b.y)) b.y = bnds.height / 2;
+                            
+                            // Wobble organically
+                            b.scaleX = 1 + Math.sin(t/300 + i)*0.03;
+                            b.scaleY = 1 + Math.cos(t/300 + i)*0.03;
+                            
+                            // Bounds (Elastic bounce instead of losing momentum)
+                            const scaledW = b.w * sizeMult;
+                            const scaledH = b.h * sizeMult;
+                            const offsetX = (scaledW - b.w) / 2;
+                            const offsetY = (scaledH - b.h) / 2;
+                            
+                            if(b.x < offsetX) { b.x = offsetX; b.vx *= -1; }
+                            if(b.x + b.w + offsetX > bnds.width) { b.x = bnds.width - b.w - offsetX; b.vx *= -1; }
+                            if(b.y < offsetY) { b.y = offsetY; b.vy *= -1; }
+                            if(b.y + b.h + offsetY > bnds.height) { b.y = bnds.height - b.h - offsetY; b.vy *= -1; }
+                            
+                            // Collisions (Soft Repel)
+                            for(let j=i+1; j<this.bubbles.length; j++) {
+                                const b2 = this.bubbles[j];
+                                if(b2.snapped || this.dragB === b2) continue;
+                                const dx = (b.x+b.w/2) - (b2.x+b2.w/2);
+                                const dy = (b.y+b.h/2) - (b2.y+b2.h/2);
+                                const dist = Math.sqrt(dx*dx + dy*dy);
+                                const minDist = (b.w + b2.w)*0.45;
+                                if(dist < minDist && dist>0) {
+                                    const force = (minDist - dist)*0.1;
+                                    const ax = (dx/dist)*force; const ay = (dy/dist)*force;
+                                    b.vx += ax; b.vy += ay; b2.vx -= ax; b2.vy -= ay;
+                                }
+                            }
+                            rot = b.vx * 3;
                         }
-                        
-                        const rot = b.vx * 3;
                         
                         let renderX = b.x;
                         let renderY = b.y;
@@ -1126,7 +1251,168 @@ if (isNaN(b.y)) b.y = bnds.height / 2;
                 Storage.data.sentences = e.data.data.sentences.map(s => ({ ...s, id: 's_'+Math.random(), catId: 'cat_1' }));
                 Storage.save();
                 Game.buildWorldMap();
-                Game.start('cat_1');
+                Game.openLobby('cat_1');
             }
         });
         window.onload = () => { Game.init(); Editor.init(); Game.showScreen('screen-loading'); window.parent.postMessage({type: 'IFRAME_READY'}, '*'); };
+    </script>
+    <script>
+        window.teamsData = [
+            { id: 1, name: "Player 1", score: 0, color: "blue" }
+        ];
+        window.isSoundMuted = false;
+        
+        window.toggleSound = function() {
+            window.isSoundMuted = !window.isSoundMuted;
+            const btn = document.getElementById('sound-toggle-btn');
+            if (btn) btn.innerText = window.isSoundMuted ? '🔇' : '🔊';
+            
+            if (typeof Audio !== 'undefined' && Audio.toggleSfx) {
+                Audio.toggleSfx(!window.isSoundMuted);
+                Audio.sfxEnabled = !window.isSoundMuted; // Hard set just in case
+            }
+        };
+        
+        window.addTeam = function() {
+            const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'pink'];
+            const id = window.teamsData.length > 0 ? Math.max(...window.teamsData.map(t => t.id)) + 1 : 1;
+            window.teamsData.push({ id, name: "Player " + id, score: 0, color: colors[(id-1) % colors.length] });
+            renderTeams();
+            if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
+        }
+
+        window.removeTeam = function(id) {
+            if (window.teamsData.length <= 1) return;
+            window.teamsData = window.teamsData.filter(t => t.id !== id);
+            renderTeams();
+            if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
+        }
+        
+        window.renameTeam = function(id) {
+            const team = window.teamsData.find(t => t.id === id);
+            if (!team) return;
+            const modal = document.getElementById('modal-rename-team');
+            const input = document.getElementById('rename-team-input');
+            const saveBtn = document.getElementById('rename-team-save-btn');
+            
+            input.value = team.name;
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+            input.focus();
+            
+            saveBtn.onclick = () => {
+                const newName = input.value;
+                if (newName && newName.trim()) {
+                    // Sanitize input
+                    const sanitized = newName.trim().replace(/[&<>'"]/g, 
+                        tag => ({
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            "'": '&#39;',
+                            '"': '&quot;'
+                        }[tag] || tag));
+                    team.name = sanitized;
+                    if (typeof renderTeams === 'function') renderTeams();
+                    if (typeof window.renderLobbyTeams === 'function') window.renderLobbyTeams();
+                }
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+            };
+            
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    saveBtn.click();
+                } else if (e.key === 'Escape') {
+                    modal.style.display = 'none';
+                    modal.classList.add('hidden');
+                }
+            };
+        }
+        
+        function updateTeamScore(id, delta) {
+            const team = window.teamsData.find(t => t.id === id);
+            if (!team) return;
+            team.score = Math.max(0, team.score + delta);
+            if (delta > 0) {
+                if (!window.isSoundMuted && typeof Audio !== 'undefined' && Audio.coin) Audio.coin();
+                if (typeof Particles !== 'undefined') {
+                    const xOffset = id % 2 === 0 ? 150 : -150;
+                    const hexColors = { blue: '#3b82f6', red: '#ef4444', green: '#22c55e', yellow: '#eab308', purple: '#a855f7', pink: '#ec4899' };
+                    Particles.spawn(window.innerWidth/2 + xOffset, 80, 10, hexColors[team.color] || '#3b82f6', 'sparkle', 1.5);
+                }
+            }
+            renderTeams();
+        }
+        
+        
+        window.renderLobbyTeams = function() {
+            const list = document.getElementById('lobby-teams-list');
+            const countLabel = document.getElementById('lobby-team-count');
+            if (!list || !countLabel) return;
+            
+            countLabel.innerText = window.teamsData.length;
+            
+            let html = '';
+            window.teamsData.forEach(t => {
+                const colorMap = {
+                    blue: { bg: 'bg-blue-500 text-white', border: 'border-blue-600' },
+                    red: { bg: 'bg-red-500 text-white', border: 'border-red-600' },
+                    green: { bg: 'bg-green-500 text-white', border: 'border-green-600' },
+                    yellow: { bg: 'bg-yellow-400 text-yellow-900', border: 'border-yellow-500' },
+                    purple: { bg: 'bg-purple-500 text-white', border: 'border-purple-600' },
+                    pink: { bg: 'bg-pink-500 text-white', border: 'border-pink-600' }
+                };
+                const c = colorMap[t.color] || colorMap.blue;
+                
+                html += `
+                    <div class="inline-flex items-stretch rounded-xl font-bold border-b-4 transition-transform hover:-translate-y-1 active:translate-y-0 active:border-b-0 shadow-sm overflow-hidden ${c.bg} ${c.border}">
+                        <button onclick="window.renameTeam(${t.id});" class="px-4 py-2 hover:bg-white/20 flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
+                            ${t.name} ✏️
+                        </button>
+                        ${window.teamsData.length > 1 ? `<button onclick="window.removeTeam(${t.id});" class="px-3 py-2 border-l border-white/30 hover:bg-red-500/80 flex items-center justify-center transition-colors">✖</button>` : ''}
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        };
+
+        function renderTeams() {
+            const container = document.getElementById('teams-container');
+            if (!container) return;
+            
+            let html = '';
+            window.teamsData.forEach(t => {
+                const colorMap = {
+                    blue: { bg: 'bg-blue-500/90 hover:bg-blue-400', border: 'border-blue-300' },
+                    red: { bg: 'bg-red-500/90 hover:bg-red-400', border: 'border-red-300' },
+                    green: { bg: 'bg-green-500/90 hover:bg-green-400', border: 'border-green-300' },
+                    yellow: { bg: 'bg-yellow-500/90 hover:bg-yellow-400', border: 'border-yellow-300' },
+                    purple: { bg: 'bg-purple-500/90 hover:bg-purple-400', border: 'border-purple-300' },
+                    pink: { bg: 'bg-pink-500/90 hover:bg-pink-400', border: 'border-pink-300' }
+                };
+                const c = colorMap[t.color];
+                
+                html += `
+                    <div class="flex items-center gap-1 group">
+                        <button 
+                            onclick="updateTeamScore(${t.id}, 1)" 
+                            oncontextmenu="event.preventDefault(); updateTeamScore(${t.id}, -1)" 
+                            class="team-score glass ${c.bg} text-white px-4 py-2 rounded-full font-black text-xl shadow-lg ${c.border} cursor-pointer transform hover:scale-105 transition-transform flex items-center gap-2">
+                            <span>${t.name}</span>: <span id="score-team${t.id}">${t.score}</span>
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            
+            // Also update lobby teams if visible
+            if (typeof window.renderLobbyTeams === 'function') {
+                window.renderLobbyTeams();
+            }
+        }
+        
+        // Wait for DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(renderTeams, 500);
+        });
