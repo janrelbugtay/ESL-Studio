@@ -344,6 +344,7 @@ window.onunhandledrejection = function(event) {
 
 </head>
 <body class="theme-sky" id="game-body">
+    <canvas id="particle-canvas" style="pointer-events: none;"></canvas>
 
     <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden" id="ambient-bg">
         <svg class="absolute top-10 right-10 w-40 h-40 text-yellow-300 drop-shadow-2xl" style="animation: float 6s ease-in-out infinite" viewBox="0 0 100 100">
@@ -615,11 +616,35 @@ window.onunhandledrejection = function(event) {
                     <div class="bg-gray-50 p-6 rounded-2xl border-2 border-gray-200 shadow-sm flex flex-col gap-4">
                         <h4 class="font-bold text-gray-700 text-lg">Add New Sentence</h4>
                         <div class="flex gap-4 items-start">
-                            
-                    <div class="flex-1 flex flex-col gap-1">
-                        <label class="text-sm font-bold text-gray-500">Sentence Text</label>
-                        <input type="text" id="modal-sent-text" class="w-full px-4 h-12 text-lg rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500">
+                            <div class="flex-1 flex flex-col gap-1">
+                                <input type="text" id="editor-new-sentence" placeholder="Type a sentence here..." class="w-full px-4 h-12 text-lg rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') Editor.addSentence()">
+                            </div>
+                            <div class="flex flex-col gap-1 w-32">
+                                <select id="editor-new-diff" class="h-12 rounded-xl border-2 border-gray-300 font-bold px-2 focus:border-blue-500">
+                                    <option value="1">Easy</option>
+                                    <option value="2">Medium</option>
+                                    <option value="3">Hard</option>
+                                </select>
+                            </div>
+                            <button onclick="Editor.addSentence()" class="btn-premium green h-12 px-6">Add</button>
+                        </div>
                     </div>
+                    
+                    <!-- Sentences List -->
+                    <div id="editor-sentences" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2 mt-4 pb-12"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Sentence Modal -->
+    <div id="modal-sent" class="hidden fixed inset-0 justify-center items-center bg-black/50 backdrop-blur-sm z-[110]" style="display: none;">
+        <div class="glass bg-white p-8 rounded-[30px] shadow-2xl w-full max-w-md border-4 border-gray-200">
+            <h2 class="text-3xl font-black text-gray-800 mb-6 text-center">Edit Sentence</h2>
+            <div class="space-y-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-bold text-gray-500">Sentence Text</label>
+                    <input type="text" id="modal-sent-text" class="w-full px-4 h-12 text-lg rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="text-sm font-bold text-gray-500">Difficulty</label>
@@ -629,13 +654,13 @@ window.onunhandledrejection = function(event) {
                         <option value="3">Hard</option>
                     </select>
                 </div>
-                <div class="flex justify-end gap-3 mt-4">
-                    <button onclick="Editor.saveSent()" class="btn-premium blue px-6 py-2">Save Changes</button>
-                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-8">
+                <button onclick="Editor.closeSentModal()" class="px-6 py-3 rounded-full font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+                <button onclick="Editor.saveSent()" class="btn-premium blue px-6 py-3">Save</button>
             </div>
         </div>
     </div>
-
     
     <!-- Global Settings Modal -->
     <div id="modal-settings" class="hidden fixed inset-0 justify-center items-center bg-black/50 backdrop-blur-sm z-[100]" style="display: none;">
@@ -794,6 +819,19 @@ window.onunhandledrejection = function(event) {
         const Particles = {
             canvas: document.getElementById('particle-canvas'), ctx: null, particles: [], animFrame: null,
             init() {
+                this.canvas = document.getElementById('particle-canvas');
+                if (!this.canvas) {
+                    this.canvas = document.createElement('canvas');
+                    this.canvas.id = 'particle-canvas';
+                    this.canvas.style.pointerEvents = 'none';
+                    this.canvas.style.position = 'absolute';
+                    this.canvas.style.top = '0';
+                    this.canvas.style.left = '0';
+                    this.canvas.style.width = '100%';
+                    this.canvas.style.height = '100%';
+                    this.canvas.style.zIndex = '50';
+                    document.body.appendChild(this.canvas);
+                }
                 this.ctx = this.canvas.getContext('2d'); this.resize();
                 window.addEventListener('resize', () => this.resize()); this.loop();
             },
@@ -825,6 +863,7 @@ window.onunhandledrejection = function(event) {
             },
             ambientTimer: 0,
             loop() {
+                if (!this.ctx) return;
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 
                 // Ambient Effects based on Theme
@@ -1027,8 +1066,12 @@ window.onunhandledrejection = function(event) {
 
         const UI = {
             updateProfile() {
-                document.getElementById('ui-avatar').innerText = Storage.data.profile.avatar;
-                document.getElementById('ui-coins-total').innerText = Storage.data.profile.coins;
+                const uiAvatar = document.getElementById('ui-avatar');
+                if (uiAvatar) uiAvatar.innerText = Storage.data.profile.avatar;
+                
+                const uiCoinsTotal = document.getElementById('ui-coins-total');
+                if (uiCoinsTotal) uiCoinsTotal.innerText = Storage.data.profile.coins;
+                
                 const gameCoins = document.getElementById('ui-coins-game');
                 if (gameCoins) gameCoins.innerText = Storage.data.profile.coins;
             }
